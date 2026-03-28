@@ -28,11 +28,11 @@ const jetbrains = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: {
-    template: "%s — Portfolio",
-    default: "Portfolio — Designer & Developer",
+    template: "%s — Abhijit Singh",
+    default: "Abhijit Singh — Developer & Builder",
   },
   description:
-    "Personal portfolio of a designer and developer crafting digital experiences with intention.",
+    "Personal portfolio of Abhijit Singh — developer building AI agents, full-stack apps, and enterprise tools.",
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"
   ),
