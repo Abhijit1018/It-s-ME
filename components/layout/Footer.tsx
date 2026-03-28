@@ -4,10 +4,9 @@ import Link from "next/link";
 import { AmbientSound } from "@/components/ui/AmbientSound";
 
 const socialLinks = [
-  { href: "https://github.com", label: "GitHub", handle: "@username" },
-  { href: "https://linkedin.com", label: "LinkedIn", handle: "username" },
-  { href: "https://x.com", label: "X / Twitter", handle: "@username" },
-  { href: "mailto:hello@example.com", label: "Email", handle: "hello@example.com" },
+  { href: "https://github.com/Abhijit1018/", label: "GitHub", handle: "@Abhijit1018" },
+  { href: "https://www.linkedin.com/in/abhijit-singh10", label: "LinkedIn", handle: "abhijit-singh10" },
+  { href: "mailto:abhijeetrathore104@gmail.com", label: "Email", handle: "abhijeetrathore104@gmail.com" },
 ];
 
 const footerLinks = [
@@ -39,7 +38,7 @@ export function Footer() {
               className="font-serif text-3xl mb-4"
               style={{ fontFamily: "var(--font-serif)", color: "var(--text-primary)" }}
             >
-              A.L
+              Abhijit
             </p>
             <p className="text-sm leading-relaxed max-w-xs" style={{ color: "var(--text-secondary)" }}>
               Crafting digital experiences with intention. Available for select projects.
@@ -90,7 +89,7 @@ export function Footer() {
 
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>
-            © {year} — All rights reserved
+            © {year} Abhijit Singh — All rights reserved
           </p>
           <div className="flex items-center gap-6">
             <AmbientSound />
