@@ -2,280 +2,299 @@
 
 import { Suspense, useRef, useMemo } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Float, Environment, RoundedBox } from "@react-three/drei";
 import * as THREE from "three";
 
-// Thin glowing line (used for ports, vents)
-function Strip({
-  pos, size, color, emissive = 0,
+/* ────────────────────────────────────────────────────
+   Per-face Minecraft shading — each face of a block
+   has a distinct brightness, exactly like Minecraft.
+   Order: right(+x), left(-x), top(+y), bottom(-y),
+          front(+z), back(-z)
+──────────────────────────────────────────────────── */
+function shade(hex: string, factor: number): string {
+  const c = new THREE.Color(hex);
+  c.multiplyScalar(Math.min(factor, 1));
+  return "#" + c.getHexString();
+}
+
+function mcMats(hex: string): THREE.MeshBasicMaterial[] {
+  return [
+    new THREE.MeshBasicMaterial({ color: shade(hex, 0.70) }), // right
+    new THREE.MeshBasicMaterial({ color: shade(hex, 0.70) }), // left
+    new THREE.MeshBasicMaterial({ color: shade(hex, 1.00) }), // top   ← brightest
+    new THREE.MeshBasicMaterial({ color: shade(hex, 0.40) }), // bottom
+    new THREE.MeshBasicMaterial({ color: shade(hex, 0.85) }), // front
+    new THREE.MeshBasicMaterial({ color: shade(hex, 0.55) }), // back
+  ];
+}
+
+/* Block mesh with Minecraft-style per-face shading */
+function Block({
+  pos,
+  size,
+  color,
+  castShadow = false,
 }: {
   pos: [number, number, number];
   size: [number, number, number];
   color: string;
-  emissive?: number;
+  castShadow?: boolean;
 }) {
+  const mats = useMemo(() => mcMats(color), [color]);
   return (
-    <mesh position={pos}>
+    <mesh position={pos} material={mats} castShadow={castShadow}>
       <boxGeometry args={size} />
-      <meshStandardMaterial color={color} emissive={color} emissiveIntensity={emissive} roughness={0.6} />
     </mesh>
   );
 }
 
-// Animated code lines on screen
-function CodeLines() {
-  const linesRef = useRef<THREE.Group>(null);
+/* Flat block — single colour (for face overlays like eyes/beard) */
+function FlatBlock({
+  pos,
+  size,
+  color,
+}: {
+  pos: [number, number, number];
+  size: [number, number, number];
+  color: string;
+}) {
+  return (
+    <mesh position={pos}>
+      <boxGeometry args={size} />
+      <meshBasicMaterial color={color} />
+    </mesh>
+  );
+}
+
+/* ────────────────────────────────────────────────────
+   Floating Minecraft block (grass / diamond / stone)
+──────────────────────────────────────────────────── */
+function FloatingBlock({
+  position,
+  topHex,
+  sideHex,
+  delay = 0,
+  size = 0.42,
+}: {
+  position: [number, number, number];
+  topHex: string;
+  sideHex: string;
+  delay?: number;
+  size?: number;
+}) {
+  const ref = useRef<THREE.Group>(null);
+  const sideMats = useMemo(() => mcMats(sideHex), [sideHex]);
+  const topMat   = useMemo(() => new THREE.MeshBasicMaterial({ color: topHex }), [topHex]);
+
+  const mats = useMemo(() => [
+    sideMats[0], sideMats[1],
+    topMat,
+    sideMats[3],
+    sideMats[4], sideMats[5],
+  ], [sideMats, topMat]);
+
   useFrame(({ clock }) => {
-    if (!linesRef.current) return;
-    // Slowly scroll upward
-    linesRef.current.position.y = (clock.elapsedTime * 0.03) % 0.18;
+    if (!ref.current) return;
+    const t = clock.elapsedTime + delay;
+    ref.current.position.y = position[1] + Math.sin(t * 0.85) * 0.18;
+    ref.current.rotation.y = t * 0.5;
   });
 
-  const lines = useMemo(() => {
-    const palette = ["#7B9E87", "#D4B896", "#C4847A", "#A8C4B0", "#8BA0D4", "#D4B896"];
-    return Array.from({ length: 10 }, (_, i) => ({
-      y: 0.46 - i * 0.105,
-      width: 0.3 + Math.random() * 0.65,
-      xOff: (Math.random() - 0.5) * 0.25,
-      color: palette[Math.floor(Math.random() * palette.length)],
-      indent: Math.random() > 0.6 ? 0.12 : 0,
-    }));
-  }, []);
-
   return (
-    <group ref={linesRef}>
-      {lines.map((l, i) => (
-        <mesh key={i} position={[l.xOff + l.indent * 0.5, l.y, 0]}>
-          <boxGeometry args={[l.width, 0.032, 0.001]} />
-          <meshStandardMaterial
-            color={l.color}
-            emissive={l.color}
-            emissiveIntensity={0.55}
-            transparent
-            opacity={0.85}
-          />
-        </mesh>
-      ))}
+    <group ref={ref} position={[position[0], position[1], position[2]]}>
+      <mesh material={mats}>
+        <boxGeometry args={[size, size, size]} />
+      </mesh>
     </group>
   );
 }
 
-function LaptopMesh() {
-  const group = useRef<THREE.Group>(null);
+/* ────────────────────────────────────────────────────
+   Minecraft Character
+──────────────────────────────────────────────────── */
+function MinecraftCharacter() {
+  const rootRef = useRef<THREE.Group>(null);
+  const headRef = useRef<THREE.Group>(null);
+  const lArmRef = useRef<THREE.Group>(null);
+  const rArmRef = useRef<THREE.Group>(null);
+  const lLegRef = useRef<THREE.Group>(null);
+  const rLegRef = useRef<THREE.Group>(null);
   const { mouse } = useThree();
+  const jump = useRef({ on: false, t: 0, next: 4.5 });
 
   useFrame(({ clock }) => {
-    if (!group.current) return;
-    const t = clock.elapsedTime;
-    group.current.rotation.y = Math.sin(t * 0.35) * 0.22 + mouse.x * 0.08;
-    group.current.rotation.x = -0.08 + mouse.y * 0.035;
+    const now = clock.elapsedTime;
+    const j = jump.current;
+
+    // Schedule jump every ~5-7 s
+    if (now > j.next && !j.on) {
+      j.on = true; j.t = 0;
+      j.next = now + 5 + Math.random() * 2.5;
+    }
+    let jy = 0;
+    if (j.on) {
+      j.t = Math.min(j.t + 0.048, 1);
+      jy  = Math.sin(j.t * Math.PI) * 0.65;
+      if (j.t >= 1) j.on = false;
+    }
+
+    if (rootRef.current) {
+      rootRef.current.position.y = Math.sin(now * 1.1) * 0.02 + jy;
+      rootRef.current.rotation.y +=
+        (mouse.x * 0.3 - rootRef.current.rotation.y) * 0.04;
+    }
+
+    // Head tracks cursor
+    if (headRef.current) {
+      headRef.current.rotation.x +=
+        (-mouse.y * 0.5 - headRef.current.rotation.x) * 0.08;
+      headRef.current.rotation.y +=
+        (mouse.x  * 0.6 - headRef.current.rotation.y) * 0.08;
+    }
+
+    // Walk cycle
+    const spd = j.on ? 0 : 2.1;
+    const amp = 0.48;
+    const k   = 0.1;
+    if (rArmRef.current) rArmRef.current.rotation.x += (Math.sin(now*spd)*amp           - rArmRef.current.rotation.x) * k;
+    if (lArmRef.current) lArmRef.current.rotation.x += (Math.sin(now*spd+Math.PI)*amp   - lArmRef.current.rotation.x) * k;
+    if (rLegRef.current) rLegRef.current.rotation.x += (Math.sin(now*spd+Math.PI)*amp*0.6 - rLegRef.current.rotation.x) * k;
+    if (lLegRef.current) lLegRef.current.rotation.x += (Math.sin(now*spd)*amp*0.6       - lLegRef.current.rotation.x) * k;
   });
 
-  // Materials
-  const bodyMat = useMemo(
-    () =>
-      new THREE.MeshPhysicalMaterial({
-        color: "#232220",
-        roughness: 0.22,
-        metalness: 0.82,
-        reflectivity: 0.9,
-      }),
-    []
-  );
-  const innerMat = useMemo(
-    () => new THREE.MeshStandardMaterial({ color: "#141412", roughness: 0.9 }),
-    []
-  );
-  const screenGlowMat = useMemo(
-    () =>
-      new THREE.MeshStandardMaterial({
-        color: "#0E1A14",
-        emissive: "#1A3325",
-        emissiveIntensity: 1.0,
-        roughness: 0.05,
-        metalness: 0,
-      }),
-    []
-  );
+  // ── Palette (matches reference) ──
+  const SKIN  = "#D4926A";
+  const HAIR  = "#7A3510";
+  const BEARD = "#9B4C1E";
+  const TEAL  = "#3DA898";
+  const PANTS = "#52546A";
+  const BOOT  = "#6A3E18";
+  const WHITE = "#EDE8DC";
+  const BELT  = "#7A4820";
+  const BLUE  = "#2E72D2";
+  const BLACK = "#111111";
+  const GOLD  = "#C8A050";
 
   return (
-    <Float speed={1.0} rotationIntensity={0.06} floatIntensity={0.35}>
-      <group ref={group} position={[0, -0.35, 0]}>
+    <group ref={rootRef}>
 
-        {/* ─── BASE UNIT ─── */}
-        <RoundedBox args={[3.4, 0.14, 2.2]} radius={0.06} smoothness={4} material={bodyMat} castShadow receiveShadow />
+      {/* ══════════════ HEAD ══════════════ */}
+      <group ref={headRef} position={[0, 1.76, 0]}>
+        {/* Skull */}
+        <Block pos={[0,0,0]} size={[0.8,0.8,0.8]} color={SKIN} castShadow />
 
-        {/* Bottom rubber feet */}
-        {[[-1.4, -0.072, -0.88], [1.4, -0.072, -0.88], [-1.4, -0.072, 0.88], [1.4, -0.072, 0.88]].map((p, i) => (
-          <mesh key={i} position={p as [number, number, number]}>
-            <cylinderGeometry args={[0.08, 0.09, 0.03, 16]} />
-            <meshStandardMaterial color="#0A0A09" roughness={1} />
-          </mesh>
-        ))}
+        {/* Hair – top cap */}
+        <Block pos={[0, 0.4, 0]}     size={[0.86, 0.16, 0.86]} color={HAIR} />
+        {/* Hair – side slabs */}
+        <Block pos={[-0.44, 0.2, 0]} size={[0.04, 0.38, 0.82]} color={HAIR} />
+        <Block pos={[ 0.44, 0.2, 0]} size={[0.04, 0.38, 0.82]} color={HAIR} />
+        {/* Hair – back */}
+        <Block pos={[0, 0.2, -0.44]} size={[0.86, 0.5, 0.04]}  color={HAIR} />
 
-        {/* Keyboard deck surface */}
-        <mesh position={[0, 0.072, -0.04]} material={innerMat}>
-          <boxGeometry args={[2.9, 0.005, 1.8]} />
-        </mesh>
+        {/* Beard – front panel */}
+        <FlatBlock pos={[0, -0.18, 0.41]}   size={[0.64, 0.26, 0.01]} color={BEARD} />
+        {/* Beard – chin block (3D) */}
+        <Block    pos={[0, -0.3,  0.34]}    size={[0.54, 0.13, 0.2]}  color={BEARD} />
+        {/* Mustache */}
+        <FlatBlock pos={[-0.12,-0.04,0.41]} size={[0.2,0.07,0.01]}    color={BEARD} />
+        <FlatBlock pos={[ 0.12,-0.04,0.41]} size={[0.2,0.07,0.01]}    color={BEARD} />
+        {/* Sideburns */}
+        <Block pos={[-0.44,-0.05,0.22]} size={[0.04,0.38,0.44]} color={BEARD} />
+        <Block pos={[ 0.44,-0.05,0.22]} size={[0.04,0.38,0.44]} color={BEARD} />
 
-        {/* Keyboard rows — 4 row bands */}
-        {[-0.55, -0.22, 0.12, 0.42].map((z, i) => (
-          <mesh key={i} position={[0, 0.078, z]} material={innerMat}>
-            <boxGeometry args={[2.4 - i * 0.04, 0.006, 0.075]} />
-          </mesh>
-        ))}
-        {/* Space bar */}
-        <mesh position={[0.08, 0.078, 0.62]}>
-          <boxGeometry args={[0.85, 0.006, 0.07]} />
-          <meshStandardMaterial color="#1C1C1A" roughness={0.85} />
-        </mesh>
+        {/* Eyebrows */}
+        <FlatBlock pos={[-0.2, 0.25,0.41]} size={[0.22,0.05,0.01]} color={HAIR} />
+        <FlatBlock pos={[ 0.2, 0.25,0.41]} size={[0.22,0.05,0.01]} color={HAIR} />
 
-        {/* Trackpad */}
-        <mesh position={[0, 0.075, 0.76]}>
-          <boxGeometry args={[1.0, 0.007, 0.62]} />
-          <meshPhysicalMaterial color="#1A1918" roughness={0.12} metalness={0.4} reflectivity={0.7} />
-        </mesh>
-        {/* Trackpad click line */}
-        <mesh position={[0, 0.078, 1.04]}>
-          <boxGeometry args={[1.0, 0.004, 0.003]} />
-          <meshStandardMaterial color="#2A2825" />
-        </mesh>
+        {/* Left eye – white / iris / pupil */}
+        <FlatBlock pos={[-0.2, 0.1, 0.41]}  size={[0.2,0.15,0.01]}  color={WHITE} />
+        <FlatBlock pos={[-0.2, 0.09,0.414]} size={[0.13,0.1,0.01]}  color={BLUE}  />
+        <FlatBlock pos={[-0.19,0.09,0.417]} size={[0.07,0.07,0.01]} color={BLACK} />
 
-        {/* Side ports — left side */}
-        <Strip pos={[-1.71, 0.01, -0.35]} size={[0.005, 0.05, 0.09]} color="#7B9E87" emissive={0.4} />
-        <Strip pos={[-1.71, 0.01, -0.18]} size={[0.005, 0.05, 0.09]} color="#3A3835" />
-        <Strip pos={[-1.71, 0.01, 0.0]} size={[0.005, 0.05, 0.09]} color="#3A3835" />
+        {/* Right eye – white / iris / pupil */}
+        <FlatBlock pos={[0.2, 0.1, 0.41]}   size={[0.2,0.15,0.01]}  color={WHITE} />
+        <FlatBlock pos={[0.2, 0.09,0.414]}  size={[0.13,0.1,0.01]}  color={BLUE}  />
+        <FlatBlock pos={[0.19,0.09,0.417]}  size={[0.07,0.07,0.01]} color={BLACK} />
 
-        {/* Vent slots — right side */}
-        {[0.1, 0.22, 0.34, 0.46, 0.58].map((z, i) => (
-          <Strip key={i} pos={[1.71, 0.01, z]} size={[0.005, 0.04, 0.025]} color="#1A1815" />
-        ))}
-
-        {/* Hinge bar */}
-        <mesh position={[0, 0.072, -1.09]}>
-          <boxGeometry args={[2.9, 0.07, 0.05]} />
-          <meshPhysicalMaterial color="#7B9E87" metalness={0.7} roughness={0.3} />
-        </mesh>
-
-        {/* ─── SCREEN LID ─── (pivot at hinge, ~105° open) */}
-        <group position={[0, 0.072, -1.09]} rotation={[-1.88, 0, 0]}>
-
-          {/* Lid outer shell */}
-          <RoundedBox
-            args={[3.4, 2.18, 0.1]}
-            radius={0.07}
-            smoothness={4}
-            position={[0, 1.09, 0]}
-            material={bodyMat}
-            castShadow
-          />
-
-          {/* Screen bezel (thin inset frame) */}
-          <mesh position={[0, 1.09, 0.052]} material={innerMat}>
-            <boxGeometry args={[3.15, 1.97, 0.008]} />
-          </mesh>
-
-          {/* Screen display area */}
-          <mesh position={[0, 1.09, 0.057]} material={screenGlowMat}>
-            <boxGeometry args={[2.9, 1.74, 0.004]} />
-          </mesh>
-
-          {/* Wallpaper gradient overlay */}
-          <mesh position={[0, 1.09, 0.059]}>
-            <boxGeometry args={[2.9, 1.74, 0.001]} />
-            <meshStandardMaterial
-              color="#0D1F18"
-              emissive="#0D2018"
-              emissiveIntensity={0.5}
-              transparent
-              opacity={0.6}
-            />
-          </mesh>
-
-          {/* Code lines panel */}
-          <group position={[-0.1, 1.09, 0.062]}>
-            <CodeLines />
-          </group>
-
-          {/* Top menu bar */}
-          <mesh position={[0, 1.93, 0.061]}>
-            <boxGeometry args={[2.9, 0.09, 0.001]} />
-            <meshStandardMaterial color="#0A1A10" emissive="#0A1A10" emissiveIntensity={0.8} transparent opacity={0.9} />
-          </mesh>
-          {/* Menu bar dots (traffic lights) */}
-          {[[-1.27, 0], [-1.13, 0], [-0.99, 0]].map(([x], i) => (
-            <mesh key={i} position={[x, 1.93, 0.062]}>
-              <circleGeometry args={[0.022, 16]} />
-              <meshStandardMaterial
-                color={["#C4847A", "#D4B896", "#7B9E87"][i]}
-                emissive={["#C4847A", "#D4B896", "#7B9E87"][i]}
-                emissiveIntensity={0.7}
-              />
-            </mesh>
-          ))}
-
-          {/* Dock bar at bottom of screen */}
-          <mesh position={[0, 0.26, 0.061]}>
-            <boxGeometry args={[1.3, 0.1, 0.001]} />
-            <meshStandardMaterial color="#1A2E20" emissive="#1A2E20" emissiveIntensity={0.6} transparent opacity={0.85} />
-          </mesh>
-          {/* Dock icons */}
-          {[-0.45, -0.22, 0, 0.22, 0.45].map((x, i) => (
-            <mesh key={i} position={[x, 0.26, 0.062]}>
-              <boxGeometry args={[0.07, 0.065, 0.001]} />
-              <meshStandardMaterial
-                color={["#7B9E87", "#D4B896", "#8BA0D4", "#C4847A", "#A8C4B0"][i]}
-                emissive={["#7B9E87", "#D4B896", "#8BA0D4", "#C4847A", "#A8C4B0"][i]}
-                emissiveIntensity={0.5}
-              />
-            </mesh>
-          ))}
-
-          {/* Camera dot */}
-          <mesh position={[0, 2.1, 0.052]}>
-            <circleGeometry args={[0.025, 24]} />
-            <meshStandardMaterial color="#0D0D0C" />
-          </mesh>
-          <mesh position={[0, 2.1, 0.054]}>
-            <circleGeometry args={[0.01, 16]} />
-            <meshStandardMaterial color="#1A2A20" emissive="#1A2A20" emissiveIntensity={0.3} />
-          </mesh>
-
-          {/* Back logo glow */}
-          <mesh position={[0, 1.09, -0.058]}>
-            <circleGeometry args={[0.22, 32]} />
-            <meshStandardMaterial
-              color="#7B9E87"
-              emissive="#7B9E87"
-              emissiveIntensity={0.35}
-              roughness={0.15}
-            />
-          </mesh>
-        </group>
-
-        {/* Screen light cast onto base */}
-        <pointLight position={[0, 1.2, 0.5]} intensity={0.4} color="#4A8A60" distance={4} />
+        {/* Nose */}
+        <Block pos={[0,0.0,0.44]} size={[0.11,0.1,0.07]} color="#BF7040" />
       </group>
-    </Float>
+
+      {/* ══════════════ BODY ══════════════ */}
+      <Block pos={[0,0.82,0]} size={[0.86,1.06,0.44]} color={TEAL} castShadow />
+      {/* White shirt strip */}
+      <FlatBlock pos={[0,0.96,0.224]}   size={[0.24,0.64,0.006]} color={WHITE} />
+      {/* Lapels */}
+      <FlatBlock pos={[-0.1,1.28,0.224]} size={[0.16,0.15,0.006]} color="#2D8070" />
+      <FlatBlock pos={[ 0.1,1.28,0.224]} size={[0.16,0.15,0.006]} color="#2D8070" />
+      {/* Belt */}
+      <FlatBlock pos={[0,0.35,0.226]}   size={[0.9,0.1,0.006]}   color={BELT}  />
+      <FlatBlock pos={[0,0.35,0.228]}   size={[0.1,0.08,0.006]}  color={GOLD}  />
+
+      {/* ══════════════ ARMS ══════════════ */}
+      <group ref={lArmRef} position={[-0.65, 1.28, 0]}>
+        <Block pos={[0,-0.46,0]} size={[0.38,0.92,0.38]} color={TEAL} castShadow />
+        <Block pos={[0,-0.97,0]} size={[0.38,0.2,0.38]}  color={SKIN} />
+      </group>
+      <group ref={rArmRef} position={[0.65, 1.28, 0]}>
+        <Block pos={[0,-0.46,0]} size={[0.38,0.92,0.38]} color={TEAL} castShadow />
+        <Block pos={[0,-0.97,0]} size={[0.38,0.2,0.38]}  color={SKIN} />
+      </group>
+
+      {/* ══════════════ LEGS ══════════════ */}
+      <group ref={lLegRef} position={[-0.22, 0.29, 0]}>
+        <Block pos={[0,-0.52,0]}  size={[0.38,1.04,0.38]} color={PANTS} castShadow />
+        <Block pos={[0,-1.1,0.04]}  size={[0.4,0.24,0.46]}  color={BOOT}  />
+        <Block pos={[0,-1.23,0.04]} size={[0.42,0.06,0.48]} color="#3A1C06" />
+      </group>
+      <group ref={rLegRef} position={[0.22, 0.29, 0]}>
+        <Block pos={[0,-0.52,0]}  size={[0.38,1.04,0.38]} color={PANTS} castShadow />
+        <Block pos={[0,-1.1,0.04]}  size={[0.4,0.24,0.46]}  color={BOOT}  />
+        <Block pos={[0,-1.23,0.04]} size={[0.42,0.06,0.48]} color="#3A1C06" />
+      </group>
+
+    </group>
   );
 }
 
+function Ground() {
+  return (
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.48, 0]} receiveShadow>
+      <planeGeometry args={[14, 14]} />
+      <shadowMaterial transparent opacity={0.12} />
+    </mesh>
+  );
+}
+
+/* ────────────────────────────────────────────────────
+   Export
+──────────────────────────────────────────────────── */
 export function HeroModel() {
   return (
     <div className="w-full h-full" role="presentation" aria-hidden="true">
       <Canvas
-        camera={{ position: [0, 1.8, 6.5], fov: 38 }}
+        camera={{ position: [0, 1.5, 7], fov: 52 }}
         shadows
-        gl={{ antialias: true, alpha: true }}
-        style={{ background: "transparent" }}
+        dpr={0.55}                      /* low pixel density = pixelated look */
+        gl={{ antialias: false, alpha: true }}
+        style={{
+          background: "transparent",
+          imageRendering: "pixelated",  /* CSS nearest-neighbour upscale */
+        }}
       >
         <Suspense fallback={null}>
-          <ambientLight intensity={0.45} />
-          <directionalLight position={[4, 8, 4]} intensity={0.9} castShadow shadow-mapSize={[1024, 1024]} />
-          <directionalLight position={[-3, 3, -2]} intensity={0.3} color="#D4B896" />
-          <pointLight position={[0, 4, 3]} intensity={0.5} color="#7B9E87" />
-          <LaptopMesh />
-          <Environment preset="city" />
+          {/* Flat ambient — preserves per-face block shading */}
+          <ambientLight intensity={0.0} />
+          <directionalLight position={[2, 6, 4]} intensity={0.6} castShadow shadow-mapSize={[512, 512]} />
+
+          <MinecraftCharacter />
+
+          {/* Floating blocks */}
+          <FloatingBlock position={[-2.5, 0.8, -0.8]} topHex="#5BB52A" sideHex="#8B6040" delay={0}   size={0.44} />
+          <FloatingBlock position={[ 2.4, 0.5, -1.0]} topHex="#55C8E8" sideHex="#55C8E8" delay={1.6} size={0.34} />
+          <FloatingBlock position={[-2.0,-0.3, -1.2]} topHex="#A0A0A0" sideHex="#888888" delay={0.9} size={0.3}  />
+          <FloatingBlock position={[ 2.1, 1.2, -1.4]} topHex="#3AC870" sideHex="#28A058" delay={2.3} size={0.28} />
+
+          <Ground />
         </Suspense>
       </Canvas>
     </div>

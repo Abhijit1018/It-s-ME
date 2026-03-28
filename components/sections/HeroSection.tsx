@@ -265,8 +265,8 @@ export function HeroSection() {
 
           {/* Right: 3D Model */}
           <div
-            className="relative hidden lg:flex items-center justify-center"
-            style={{ height: "480px" }}
+            className="relative hidden lg:block"
+            style={{ height: "660px" }}
           >
             <HeroModel />
           </div>
