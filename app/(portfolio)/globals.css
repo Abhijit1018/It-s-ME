@@ -1,0 +1,264 @@
+@import "tailwindcss";
+
+/* ─── Design Tokens ──────────────────────────────────────────── */
+:root {
+  /* Backgrounds */
+  --bg-primary: #F7F4EF;
+  --bg-surface: rgba(247, 244, 239, 0.85);
+
+  /* Text */
+  --text-primary: #1C1C1A;
+  --text-secondary: #5A5A56;
+  --text-tertiary: #8A8A84;
+
+  /* Accents */
+  --accent-sage: #7B9E87;
+  --accent-sand: #D4B896;
+  --accent-rose: #C4847A;
+
+  /* Borders */
+  --border-subtle: rgba(28, 28, 26, 0.1);
+  --border-medium: rgba(28, 28, 26, 0.2);
+
+  /* Shadows */
+  --shadow-soft: 0 4px 24px rgba(28, 28, 26, 0.06);
+  --shadow-medium: 0 8px 48px rgba(28, 28, 26, 0.12);
+
+  /* Easing */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.87, 0, 0.13, 1);
+  --duration-fast: 200ms;
+  --duration-base: 400ms;
+  --duration-slow: 700ms;
+}
+
+/* ─── Dark Mode ──────────────────────────────────────────────── */
+[data-theme="dark"] {
+  --bg-primary: #1A1814;
+  --bg-surface: rgba(26, 24, 20, 0.85);
+  --text-primary: #EDE8DF;
+  --text-secondary: #A8A49B;
+  --text-tertiary: #6A6660;
+  --border-subtle: rgba(237, 232, 223, 0.1);
+  --border-medium: rgba(237, 232, 223, 0.2);
+  --shadow-soft: 0 4px 24px rgba(0, 0, 0, 0.3);
+  --shadow-medium: 0 8px 48px rgba(0, 0, 0, 0.5);
+}
+
+/* ─── Warm Dim Mode ──────────────────────────────────────────── */
+[data-theme="warm"] {
+  --bg-primary: #1C1611;
+  --bg-surface: rgba(28, 22, 17, 0.85);
+  --text-primary: #E8DCC8;
+  --text-secondary: #B0A490;
+  --text-tertiary: #786E60;
+  --border-subtle: rgba(232, 220, 200, 0.1);
+  --border-medium: rgba(232, 220, 200, 0.2);
+  --shadow-soft: 0 4px 24px rgba(0, 0, 0, 0.4);
+  --shadow-medium: 0 8px 48px rgba(0, 0, 0, 0.6);
+}
+
+/* ─── Tailwind v4 Theme ──────────────────────────────────────── */
+@theme inline {
+  --color-background: var(--bg-primary);
+  --color-foreground: var(--text-primary);
+  --color-accent: var(--accent-sage);
+  --color-sand: var(--accent-sand);
+  --font-serif: var(--font-playfair), "Playfair Display", Georgia, serif;
+  --font-sans: var(--font-dm-sans), "DM Sans", system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), "JetBrains Mono", monospace;
+}
+
+/* ─── Base Styles ────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  height: 100%;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-sans, "DM Sans", system-ui, sans-serif);
+  font-size: 1rem;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color var(--duration-base) var(--ease-out-expo),
+              color var(--duration-base) var(--ease-out-expo);
+  overflow-x: hidden;
+  min-height: 100%;
+}
+
+/* ─── Grain Texture Overlay ──────────────────────────────────── */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  background-size: 256px 256px;
+}
+
+/* ─── Typography ─────────────────────────────────────────────── */
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-serif, "Playfair Display", Georgia, serif);
+  font-weight: 400;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+h1 { font-size: clamp(2.5rem, 8vw, 6rem); }
+h2 { font-size: clamp(2rem, 5vw, 3.5rem); }
+h3 { font-size: clamp(1.5rem, 3vw, 2rem); }
+
+p { color: var(--text-secondary); }
+
+a { color: inherit; text-decoration: none; }
+
+code, pre {
+  font-family: var(--font-mono, "JetBrains Mono", monospace);
+  font-size: 0.875em;
+}
+
+/* ─── Custom Cursor ──────────────────────────────────────────── */
+@media (hover: hover) and (pointer: fine) {
+  * { cursor: none !important; }
+}
+
+/* ─── Selection ──────────────────────────────────────────────── */
+::selection {
+  background-color: var(--accent-sage);
+  color: #F7F4EF;
+}
+
+/* ─── Scrollbar ──────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--border-medium);
+  border-radius: 2px;
+}
+
+/* ─── Focus Ring ─────────────────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--accent-sage);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* ─── Utilities ──────────────────────────────────────────────── */
+.container-editorial {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 clamp(1.5rem, 5vw, 5rem);
+}
+
+.section-number {
+  font-family: var(--font-mono, "JetBrains Mono", monospace);
+  font-size: 0.7rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent-sage);
+}
+
+.rule-horizontal {
+  width: 100%;
+  height: 1px;
+  background-color: var(--border-subtle);
+}
+
+.glass-panel {
+  background: var(--bg-surface);
+  backdrop-filter: blur(20px) saturate(1.2);
+  -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  border: 1px solid var(--border-subtle);
+}
+
+/* ─── Page sections: push content below fixed navbar ─────────── */
+/* handled per-section via pt-32 or min-h-screen */
+
+/* ─── Clip-path animation support ───────────────────────────── */
+[style*="clipPath"],
+[style*="clip-path"] {
+  will-change: clip-path, transform, opacity;
+}
+
+/* ─── Typography: fluid section titles ───────────────────────── */
+.text-editorial {
+  font-family: var(--font-serif, "Playfair Display", serif);
+  font-size: clamp(2.5rem, 6vw, 5rem);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  color: var(--text-primary);
+}
+
+/* ─── Horizontal rule with gradient ──────────────────────────── */
+.rule-gradient {
+  height: 1px;
+  background: linear-gradient(to right, var(--accent-sage), transparent);
+}
+
+/* ─── Premium Aesthetics ─────────────────────────────────────── */
+.bg-gradient-radial-glow {
+  position: relative;
+  background-color: var(--bg-primary);
+}
+.bg-gradient-radial-glow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 100% at 50% -20%, rgba(123, 158, 135, 0.15) 0%, transparent 50%),
+              radial-gradient(80% 80% at 100% 100%, rgba(212, 184, 150, 0.1) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.hover-lift {
+  transition: transform var(--duration-base) var(--ease-out-expo),
+              box-shadow var(--duration-base) var(--ease-out-expo),
+              border-color var(--duration-base) var(--ease-out-expo);
+}
+.hover-lift:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-medium), 0 0 20px rgba(123, 158, 135, 0.15);
+  border-color: var(--accent-sage);
+}
+
+/* ─── Availability dot pulse ─────────────────────────────────── */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(0.85); }
+}
+.animate-pulse {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+/* ─── Smooth page fade-in ────────────────────────────────────── */
+@keyframes page-enter {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+main {
+  animation: page-enter 0.5s var(--ease-out-expo) both;
+}
+
+/* ─── Reduced Motion ─────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

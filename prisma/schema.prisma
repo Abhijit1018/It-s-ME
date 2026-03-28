@@ -1,0 +1,30 @@
+// Prisma schema — used for caching layer (GitHub API, visitor counts)
+// Portfolio content is managed via Payload CMS (separate tables)
+// Tables use "cache_" prefix via @@map to avoid name collisions with Payload
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model GitHubCache {
+  id        String   @id @default(cuid())
+  key       String   @unique // e.g. "repo:username/repo-name"
+  data      Json
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([key])
+  @@map("cache_github")
+}
+
+model VisitorCount {
+  id    String @id @default("singleton")
+  count Int    @default(0)
+
+  @@map("cache_visitor")
+}
