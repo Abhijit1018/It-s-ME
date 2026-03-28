@@ -13,6 +13,5 @@ export async function generateMetadata({ params, searchParams }: Args) {
 }
 
 export default async function Admin({ params, searchParams }: Args) {
-  // @ts-expect-error - Expected type mismatch between Client/Handler in Payload types
-  return RootPage({ config: configPromise, importMap, params, searchParams });
+  return RootPage({ config: configPromise, importMap, params, searchParams } as any);
 }
