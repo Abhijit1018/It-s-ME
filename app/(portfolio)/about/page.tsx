@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Footer } from "@/components/layout/Footer";
 import { AboutHero } from "@/components/sections/AboutHero";
+import { ExperienceSection } from "@/components/sections/ExperienceSection";
 import { Timeline } from "@/components/sections/Timeline";
 import { Manifesto } from "@/components/sections/Manifesto";
 import { getPayload } from "payload";
@@ -37,6 +38,7 @@ export default async function AboutPage() {
   return (
     <>
       <AboutHero />
+      <ExperienceSection />
       <Timeline milestones={milestones.length > 0 ? milestones : undefined} />
       <Manifesto />
       <Footer />

@@ -82,7 +82,7 @@ export function Navbar() {
               className="transition-colors"
               style={{ color: "var(--text-primary)" }}
             >
-              A.L
+              ABHI
             </span>
             <span
               className="absolute bottom-0 left-0 h-px w-0 group-hover:w-full transition-all duration-300"

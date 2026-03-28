@@ -10,10 +10,10 @@ export const metadata: Metadata = {
 };
 
 const FALLBACK_POSTS = [
-  { slug: "the-case-for-slower-animations", title: "The Case for Slower Animations", date: "2024-11-15", readingTime: "5 min", excerpt: "We've collectively overcorrected. The web is twitchy, anxious, full of micro-interactions that fire before you've finished thinking. Here's why I've been slowing everything down.", tags: ["Design", "Motion"] },
-  { slug: "design-tokens-in-practice", title: "Design Tokens in Practice", date: "2024-09-03", readingTime: "8 min", excerpt: "A year of building a design token system taught me that the technical problems are the easy part. The organisational problems are where systems go to die.", tags: ["Design Systems", "Engineering"] },
-  { slug: "on-building-in-public", title: "On Building in Public", date: "2024-06-20", readingTime: "4 min", excerpt: "I spent six months building in public and mostly hated it. Then something changed. A reflection on visibility, vulnerability, and why I'm doing it differently now.", tags: ["Meta", "Process"] },
-  { slug: "the-last-15-percent", title: "The Last 15 Percent", date: "2024-02-08", readingTime: "6 min", excerpt: "Every project has a last 15%. The part where it's mostly done but nothing is right. This is about that part — and why it's actually the most important.", tags: ["Process", "Craft"] },
+  { slug: "building-ai-agents-from-scratch", title: "Building AI Agents From Scratch", date: "2025-03-01", readingTime: "7 min", excerpt: "Everyone is wrapping GPT-4 in a for-loop and calling it an agent. Here's what real autonomous tool-use looks like — the architecture, the failure modes, and the lessons from building Arora AI.", tags: ["AI", "Python", "Engineering"] },
+  { slug: "sap-meets-modern-web", title: "SAP Meets the Modern Web", date: "2025-01-15", readingTime: "6 min", excerpt: "SAP has a reputation problem. It's powerful, battle-tested, and genuinely excellent at what it does — but the developer experience is decades behind. Here's what bridging it with a Next.js frontend actually looks like.", tags: ["SAP", "Enterprise", ".NET"] },
+  { slug: "zero-to-39-repos", title: "Zero to 39 Repos — What I Learned", date: "2024-11-20", readingTime: "5 min", excerpt: "In less than a year I went from no public GitHub presence to 39 repositories across Python, TypeScript, JavaScript, and C#. What I'd tell myself at repo #1.", tags: ["Process", "Learning"] },
+  { slug: "hindi-nlp-is-hard", title: "Hindi NLP Is Hard, and That's the Point", date: "2024-09-10", readingTime: "8 min", excerpt: "Building a voice assistant for Hindi and Hinglish speakers exposed every assumption baked into English-first AI tooling. A technical deep dive into the Bharat Biz Agent language pipeline.", tags: ["AI", "NLP", "Python"] },
 ];
 
 type PostItem = { slug: string; title: string; date: string; readingTime: string; excerpt: string; tags: string[] };

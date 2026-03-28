@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Playfair_Display, DM_Sans, JetBrains_Mono } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { ThemeProvider } from "@/components/layout/ThemeProvider";
 import { CustomCursor } from "@/components/ui/CustomCursor";
@@ -67,6 +68,13 @@ export default function RootLayout({
         >
           Skip to main content
         </a>
+        <Script
+          id="theme-init"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `try{var t=localStorage.getItem('portfolio-theme'),p=window.matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';document.documentElement.setAttribute('data-theme',t||p)}catch(e){}`,
+          }}
+        />
         <ThemeProvider>
           <SmoothScrollProvider>
             <CustomCursor />
