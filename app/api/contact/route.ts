@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { rateLimit } from "@/lib/rate-limit";
 
 const ContactSchema = z.object({
   name: z.string().min(1).max(100),
@@ -9,6 +10,12 @@ const ContactSchema = z.object({
 });
 
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
+  const { allowed } = rateLimit(ip, 5, 60_000); // 5 submissions per minute per IP
+  if (!allowed) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
+
   let body: unknown;
   try {
     body = await req.json();
@@ -40,7 +47,7 @@ export async function POST(req: NextRequest) {
 
     await resend.emails.send({
       from: process.env.RESEND_FROM_EMAIL ?? "noreply@portfolio.dev",
-      to: process.env.RESEND_FROM_EMAIL ?? "hello@example.com",
+      to: process.env.RESEND_TO_EMAIL ?? process.env.RESEND_FROM_EMAIL ?? "hello@example.com",
       replyTo: email,
       subject: `[Portfolio] ${subject} — from ${name}`,
       text: `From: ${name} <${email}>\nSubject: ${subject}\n\n${message}`,

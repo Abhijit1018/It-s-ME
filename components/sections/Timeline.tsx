@@ -3,11 +3,14 @@
 import { useEffect, useRef } from "react";
 
 const FALLBACK_MILESTONES = [
-  { year: "2025", title: "AI Agent Development", company: "Independent", type: "Open Source", description: "Building autonomous AI agents — Arora AI and Bharat Biz Agent — exploring voice interfaces, multi-lingual support, and LLM orchestration." },
-  { year: "2025", title: "SAP Backend Certified", company: "SAP", type: "Certification", description: "Achieved SAP backend certification, bridging enterprise ERP systems with modern web and Python development." },
-  { year: "2025", title: "Full-Stack TypeScript Projects", company: "Independent", type: "Projects", description: "Shipped multiple TypeScript projects — ShieldRoute, Living Blossom, Nexus OS — expanding into modern frontend architecture with Next.js and Three.js." },
-  { year: "2025", title: ".NET & Enterprise Development", company: "Independent", type: "Learning", description: "Deep dived into the .NET ecosystem, building enterprise-grade backend systems alongside Python and JavaScript projects." },
-  { year: "2025", title: "Started the Journey", company: "GitHub", type: "Milestone", description: "Joined GitHub and immediately shipped 39+ repositories across Python, TypeScript, JavaScript, and HTML — zero to full-stack in months." },
+  { year: "2025", title: "SAP Full Stack Developer Intern", company: "VegaH LLC", type: "Milestone", description: "Joined VegaH LLC as SAP Full Stack Developer Intern — building enterprise apps on SAP BTP with RAP, CDS Views, and OData services, alongside AI-integrated workflows." },
+  { year: "2025", title: "SAP ABAP Cloud Developer", company: "SAP", type: "Certification", description: "Certified in ABAP Cloud development — covering RAP model, CDS, ABAP Cloud APIs, and BTP-native development patterns." },
+  { year: "2025", title: "SAP S/4HANA Sourcing & Procurement", company: "SAP", type: "Certification", description: "Certified in S/4HANA Sourcing & Procurement processes, enterprise data flows, and ERP integration patterns." },
+  { year: "2025", title: "Python Django Intern", company: "Infosys Springboard", type: "Milestone", description: "Completed a Django internship at Infosys Springboard, building full-stack REST APIs and delivering projects under agile workflows." },
+  { year: "2025", title: "Oracle OCI AI Foundations", company: "Oracle", type: "Certification", description: "Certified in Oracle OCI AI Foundations, covering AI/ML fundamentals, data science workflows, and cloud-based AI services on OCI." },
+  { year: "2025", title: "AWS Certified Cloud Practitioner", company: "AWS", type: "Certification", description: "Achieved AWS Cloud Practitioner certification, covering core AWS services, cloud architecture fundamentals, and deployment best practices." },
+  { year: "2025", title: "Generative AI Certification", company: "Independent", type: "Certification", description: "Completed Generative AI certification, exploring LLM architectures, prompt engineering, and AI agent frameworks." },
+  { year: "2025", title: "AI Agents & Open Source", company: "GitHub", type: "Open Source", description: "Built Arora AI and Bharat Biz Agent — autonomous Python agents with tool use, memory, and multi-lingual voice support for Indian SMEs. Shipped 39+ public repos." },
 ];
 
 type MilestoneItem = {

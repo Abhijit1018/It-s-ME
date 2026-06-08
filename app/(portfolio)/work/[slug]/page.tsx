@@ -17,6 +17,58 @@ const projects: Record<string, {
   nextSlug: string;
   nextTitle: string;
 }> = {
+  "recall-sap": {
+    title: "Recall",
+    year: "2025",
+    category: "SAP / AI",
+    githubUrl: "https://github.com/Abhijit1018",
+    accent: "#7B9E87",
+    overview: "Recall is an AI-powered SAP outreach system that automatically identifies overdue customers and drives communication workflows — built on SAP BTP using OData services, CAP model, and external AI tooling.",
+    problem: "Enterprise teams managing accounts receivable manually spend hours identifying which customers are overdue and composing follow-up messages. The process is slow, inconsistent, and doesn't scale.",
+    solution: "Recall connects to SAP OData services to pull financial data, applies AI-driven classification to prioritise overdue accounts, and automates outreach via Twilio SMS and email pipelines — cutting manual intervention to near zero.",
+    techStack: ["SAP BTP", "ABAP CAP Model", "OData Services", "SAP Fiori", "AI Integration", "Twilio", "Email Automation"],
+    nextSlug: "arora-ai",
+    nextTitle: "Arora AI",
+  },
+  "mindispo": {
+    title: "MINDISPO",
+    year: "2025",
+    category: "Django",
+    githubUrl: "https://github.com/Abhijit1018",
+    accent: "#C4847A",
+    overview: "MINDISPO is a resource optimization platform for managing and tracking resource distribution, inventory workflows, and operational analytics — built with Django and a dashboard-driven interface.",
+    problem: "Teams managing physical or digital resources often rely on spreadsheets, which break down at any meaningful scale. Tracking, allocation, and analytics become separate manual processes.",
+    solution: "A modular Django backend with structured workflow management, REST APIs for allocation tracking, and a dashboard interface that surfaces operational insights in real time.",
+    techStack: ["Python", "Django", "REST APIs", "MySQL", "Streamlit", "Dashboard UI"],
+    nextSlug: "redhope",
+    nextTitle: "REDHOPE",
+  },
+  "redhope": {
+    title: "REDHOPE",
+    year: "2025",
+    category: "Django",
+    githubUrl: "https://github.com/Abhijit1018",
+    accent: "#B07070",
+    overview: "REDHOPE is a blood and organ delivery logistics platform — managing inventory, tracking deliveries, and coordinating real-time communication between hospitals and vendors.",
+    problem: "Blood and organ logistics require near-zero error tolerance and real-time coordination between multiple parties. Most existing systems are fragmented, with no unified view of inventory, requests, and delivery status.",
+    solution: "A Django-powered platform with inventory management, delivery tracking, request workflows, and authentication — structured for real-time coordination between hospitals and vendors with analytics dashboards.",
+    techStack: ["Python", "Django", "REST APIs", "MySQL", "Authentication", "Analytics Dashboard"],
+    nextSlug: "sap-fiori-sales",
+    nextTitle: "SAP Fiori Sales Order App",
+  },
+  "sap-fiori-sales": {
+    title: "SAP Fiori Sales Order App",
+    year: "2025",
+    category: "SAP",
+    githubUrl: "https://github.com/Abhijit1018",
+    accent: "#6090A0",
+    overview: "A Fiori UI5 application for end-to-end sales order processing — built with SAPUI5 on the frontend, ABAP backend business logic, and OData services for real-time synchronization.",
+    problem: "SAP's default transaction interfaces for sales order management are dense and require significant training. Modern enterprise users expect familiar web-app patterns without sacrificing SAP's transactional integrity.",
+    solution: "A Fiori-native application that surfaces the core sales order workflow in a clean SAPUI5 interface, backed by ABAP-driven business logic and OData services ensuring live data sync with the SAP backend.",
+    techStack: ["SAPUI5", "SAP Fiori", "ABAP", "OData Services", "SAP BTP", "BAS (Business Application Studio)"],
+    nextSlug: "recall-sap",
+    nextTitle: "Recall",
+  },
   "arora-ai": {
     title: "Arora AI",
     year: "2025",
@@ -126,6 +178,7 @@ const projects: Record<string, {
 export function generateStaticParams() {
   return Object.keys(projects).map((slug) => ({ slug }));
 }
+
 
 export async function generateMetadata({
   params,

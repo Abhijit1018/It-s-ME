@@ -6,13 +6,16 @@ import { motion, AnimatePresence } from "framer-motion";
 import { RevealOnScroll } from "@/components/animations/RevealOnScroll";
 
 const FALLBACK_PROJECTS = [
-  { slug: "arora-ai", title: "Arora AI", year: "2025", category: "AI", description: "The master agent for your machine — an autonomous AI assistant built in Python with tool use, memory, and multi-step reasoning.", accent: "#7B9E87" },
+  { slug: "recall-sap", title: "Recall", year: "2025", category: "SAP / AI", description: "AI-driven SAP outreach system — identifies overdue customers and automates communication workflows via Twilio and email, integrated with SAP OData and CAP model.", accent: "#7B9E87" },
+  { slug: "arora-ai", title: "Arora AI", year: "2025", category: "AI", description: "The master agent for your machine — an autonomous AI assistant built in Python with tool use, memory, and multi-step reasoning.", accent: "#9BB8A4" },
   { slug: "bharat-biz-agent", title: "Bharat Biz Agent", year: "2025", category: "AI", description: "Voice + chat based business assistant for Hindi, English, and Hinglish speakers. Multi-lingual LLM orchestration for Indian SMEs.", accent: "#D4B896" },
-  { slug: "shieldroute", title: "ShieldRoute", year: "2025", category: "TypeScript", description: "A TypeScript-based secure routing framework. Declarative route protection with middleware composition.", accent: "#C4847A" },
+  { slug: "mindispo", title: "MINDISPO", year: "2025", category: "Django", description: "Resource optimization platform — manages and tracks resource distribution and inventory workflows with analytics dashboards and modular backend architecture.", accent: "#C4847A" },
+  { slug: "redhope", title: "REDHOPE", year: "2025", category: "Django", description: "Blood and organ delivery logistics platform — inventory management, delivery tracking, and real-time coordination between hospitals and vendors.", accent: "#B07070" },
+  { slug: "sap-fiori-sales", title: "SAP Fiori Sales Order App", year: "2025", category: "SAP", description: "Fiori UI5 application for sales order processing — built with SAPUI5, ABAP backend logic, and OData services for real-time synchronization.", accent: "#6090A0" },
+  { slug: "shieldroute", title: "ShieldRoute", year: "2025", category: "TypeScript", description: "A TypeScript-based secure routing framework. Declarative route protection with middleware composition.", accent: "#8890C4" },
   { slug: "living-blossom", title: "Living Blossom", year: "2025", category: "Web", description: "A TypeScript web application — elegant UI with a focus on interaction design and component architecture.", accent: "#A8C4B0" },
   { slug: "nexus-os", title: "Nexus OS", year: "2025", category: "TypeScript", description: "An operating-system-inspired TypeScript project exploring windowed UI, file system abstractions, and process management in the browser.", accent: "#9BB8A4" },
   { slug: "legacy-lens", title: "LegacyLens", year: "2025", category: "Python", description: "The code legacy optimizer — analyzes Python codebases, identifies technical debt, and suggests refactoring paths using static analysis.", accent: "#BFA090" },
-  { slug: "code-legacy-frontend", title: "Code Legacy Frontend", year: "2025", category: "Web", description: "Frontend dashboard for the Code Legacy platform — visualizing codebase health metrics and refactoring recommendations.", accent: "#B0A8C4" },
   { slug: "e-flower", title: "E-Flower", year: "2025", category: "Web", description: "Full-stack e-commerce application for a floral business, with product catalog, cart, and order management.", accent: "#C4A8B0" },
 ];
 

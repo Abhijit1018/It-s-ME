@@ -2,6 +2,8 @@
 
 import { useEffect, useRef } from "react";
 
+const INTERACTIVE_SELECTOR = "a, button, [role='button'], input, textarea, select, label, [tabindex]";
+
 export function CustomCursor() {
   const dotRef = useRef<HTMLDivElement>(null);
   const ringRef = useRef<HTMLDivElement>(null);
@@ -24,19 +26,34 @@ export function CustomCursor() {
       mouseY = e.clientY;
     }
 
-    function onEnterInteractive() {
-      ring?.classList.add("expanded");
+    // Event delegation: check if hovered target matches interactive selector
+    function onMouseOver(e: MouseEvent) {
+      const target = e.target as HTMLElement;
+      if (target.closest(INTERACTIVE_SELECTOR)) {
+        ring?.classList.add("expanded");
+      }
     }
-    function onLeaveInteractive() {
-      ring?.classList.remove("expanded");
+    function onMouseOut(e: MouseEvent) {
+      const target = e.target as HTMLElement;
+      if (target.closest(INTERACTIVE_SELECTOR)) {
+        ring?.classList.remove("expanded");
+      }
     }
-    function onEnterCanvas() {
-      dot?.classList.add("hidden-cursor");
-      ring?.classList.add("hidden-cursor");
+
+    // Hide cursor over canvas elements
+    function onMouseOverCanvas(e: MouseEvent) {
+      const target = e.target as HTMLElement;
+      if (target.tagName === "CANVAS") {
+        dot?.classList.add("hidden-cursor");
+        ring?.classList.add("hidden-cursor");
+      }
     }
-    function onLeaveCanvas() {
-      dot?.classList.remove("hidden-cursor");
-      ring?.classList.remove("hidden-cursor");
+    function onMouseOutCanvas(e: MouseEvent) {
+      const target = e.target as HTMLElement;
+      if (target.tagName === "CANVAS") {
+        dot?.classList.remove("hidden-cursor");
+        ring?.classList.remove("hidden-cursor");
+      }
     }
 
     function animate() {
@@ -54,34 +71,20 @@ export function CustomCursor() {
     }
 
     window.addEventListener("mousemove", onMove);
-
-    const interactives = document.querySelectorAll<HTMLElement>(
-      "a, button, [role='button'], input, textarea, select, label, [tabindex]"
-    );
-    const canvases = document.querySelectorAll<HTMLElement>("canvas");
-
-    interactives.forEach((el) => {
-      el.addEventListener("mouseenter", onEnterInteractive);
-      el.addEventListener("mouseleave", onLeaveInteractive);
-    });
-    canvases.forEach((el) => {
-      el.addEventListener("mouseenter", onEnterCanvas);
-      el.addEventListener("mouseleave", onLeaveCanvas);
-    });
+    document.addEventListener("mouseover", onMouseOver);
+    document.addEventListener("mouseout", onMouseOut);
+    document.addEventListener("mouseover", onMouseOverCanvas);
+    document.addEventListener("mouseout", onMouseOutCanvas);
 
     raf = requestAnimationFrame(animate);
 
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener("mousemove", onMove);
-      interactives.forEach((el) => {
-        el.removeEventListener("mouseenter", onEnterInteractive);
-        el.removeEventListener("mouseleave", onLeaveInteractive);
-      });
-      canvases.forEach((el) => {
-        el.removeEventListener("mouseenter", onEnterCanvas);
-        el.removeEventListener("mouseleave", onLeaveCanvas);
-      });
+      document.removeEventListener("mouseover", onMouseOver);
+      document.removeEventListener("mouseout", onMouseOut);
+      document.removeEventListener("mouseover", onMouseOverCanvas);
+      document.removeEventListener("mouseout", onMouseOutCanvas);
     };
   }, []);
 

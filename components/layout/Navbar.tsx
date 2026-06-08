@@ -187,7 +187,7 @@ export function Navbar() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-            className="fixed inset-0 z-40 flex flex-col justify-center px-8"
+            className="fixed inset-0 z-[60] flex flex-col justify-center px-8"
             style={{ background: "var(--bg-primary)" }}
             aria-modal="true"
             role="dialog"

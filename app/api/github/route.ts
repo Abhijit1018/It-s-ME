@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { Redis } from "@upstash/redis";
+import { rateLimit } from "@/lib/rate-limit";
 
 const CACHE_KEY = "github:repos";
 const CACHE_TTL = 60 * 60; // 1 hour
@@ -15,7 +16,13 @@ type Repo = {
   topics: string[];
 };
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
+  const { allowed } = rateLimit(ip, 30, 60_000); // 30 req/min per IP
+  if (!allowed) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
+
   const username = process.env.GITHUB_USERNAME;
   if (!username) {
     return NextResponse.json({ error: "GITHUB_USERNAME env var not set" }, { status: 500 });

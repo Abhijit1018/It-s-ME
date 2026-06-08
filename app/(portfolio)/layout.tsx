@@ -8,6 +8,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { CommandPalette } from "@/components/ui/CommandPalette";
 import { SmoothScrollProvider } from "@/components/layout/SmoothScrollProvider";
 import { EasterEggs } from "@/components/ui/EasterEggs";
+import { TerminalModal } from "@/components/ui/TerminalModal";
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
@@ -40,7 +41,19 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "en_US",
-    siteName: "Portfolio",
+    siteName: "Abhijit Singh",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Abhijit Singh — Developer & Builder",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    images: ["/og-image.png"],
   },
   robots: {
     index: true,
@@ -79,6 +92,7 @@ export default function RootLayout({
           <SmoothScrollProvider>
             <CustomCursor />
             <EasterEggs />
+            <TerminalModal />
             <Navbar />
             <CommandPalette />
             <main id="main-content" className="bg-gradient-radial-glow">{children}</main>

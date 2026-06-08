@@ -31,7 +31,11 @@ export function AmbientSound() {
       const audio = new Audio(sounds[selected].src);
       audio.loop = true;
       audio.volume = volume;
-      audio.play().catch(() => {});
+      audio.play().catch(() => {
+        // Audio file missing or autoplay blocked — stay inactive
+        setActive(false);
+        audioRef.current = null;
+      });
       audioRef.current = audio;
       setActive(true);
     } else {
@@ -55,7 +59,10 @@ export function AmbientSound() {
       const audio = new Audio(sounds[idx].src);
       audio.loop = true;
       audio.volume = volume;
-      audio.play().catch(() => {});
+      audio.play().catch(() => {
+        setActive(false);
+        audioRef.current = null;
+      });
       audioRef.current = audio;
     }
   }

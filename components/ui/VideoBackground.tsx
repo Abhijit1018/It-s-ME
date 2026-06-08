@@ -14,13 +14,23 @@ export function VideoBackground({ webm, mp4, poster, overlay = false }: VideoBac
 
   useEffect(() => {
     const prefersReduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (prefersReduced && videoRef.current) {
+    if (!videoRef.current) return;
+    if (prefersReduced) {
       videoRef.current.pause();
+      return;
     }
+    // Fallback: if video fails to load, the dark bg-primary shows through
+    videoRef.current.onerror = () => {
+      if (videoRef.current) videoRef.current.style.display = "none";
+    };
   }, []);
 
   return (
-    <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
+    <div
+      className="absolute inset-0 overflow-hidden"
+      aria-hidden="true"
+      style={{ background: "var(--bg-primary)" }}
+    >
       <video
         ref={videoRef}
         autoPlay

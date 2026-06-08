@@ -9,11 +9,10 @@ export const metadata: Metadata = {
 };
 
 const FALLBACK_SECTIONS = [
-  { title: "Hardware", items: [{ name: "MacBook Pro 14\"", note: "M3 Pro. The battery alone changed my life." }, { name: "LG 27UK850-W", note: "27\" 4K. Good colour accuracy, USB-C passthrough." }, { name: "Keychron Q1", note: "Gateron G Pro Red switches. Quiet enough for calls." }, { name: "Logitech MX Master 3S", note: "The scroll wheel is genuinely a competitive advantage." }, { name: "Sony WH-1000XM5", note: "ANC for deep work. The hinge creak is real, though." }] },
-  { title: "Development", items: [{ name: "VS Code", note: "With Vim mode. I refuse to explain this." }, { name: "Warp", note: "For the terminal. The AI autocomplete is actually useful." }, { name: "TablePlus", note: "Database GUI. Worth every penny." }, { name: "Proxyman", note: "HTTP proxy. Invaluable for debugging mobile API calls." }, { name: "Raycast", note: "Spotlight replacement. The snippets alone justify it." }] },
-  { title: "Design", items: [{ name: "Figma", note: "Variables and dev mode finally made it worth staying." }, { name: "Framer", note: "For prototypes that need to feel real." }, { name: "Rive", note: "For production-ready interactive animations." }, { name: "Typeface 3", note: "Font manager. Keeps the chaos organised." }] },
-  { title: "Productivity", items: [{ name: "Obsidian", note: "Second brain. Local-first, Markdown, no lock-in." }, { name: "Linear", note: "Issue tracking that doesn't feel like punishment." }, { name: "Cleanshot X", note: "Screenshots and screen recording. Best in class." }, { name: "Bear", note: "Quick notes. Syncs fast, stays out of the way." }] },
-  { title: "Fonts & Typography", items: [{ name: "Playfair Display", note: "My current serif default for editorial work." }, { name: "DM Sans", note: "Cleanest variable sans for interfaces." }, { name: "JetBrains Mono", note: "Best monospaced for long coding sessions." }, { name: "Söhne", note: "When I need something with more personality." }] },
+  { title: "Development", items: [{ name: "VS Code", note: "With Vim mode. I refuse to explain this." }, { name: "Eclipse ADT", note: "For SAP ABAP and CDS views — still the best for BTP work." }, { name: "SAP Business Application Studio", note: "Cloud IDE for Fiori + CAP development on BTP." }, { name: "TablePlus", note: "Database GUI for PostgreSQL and MySQL. Worth every penny." }, { name: "Warp", note: "Terminal with AI autocomplete. Actually useful." }] },
+  { title: "Design", items: [{ name: "Figma", note: "Variables and dev mode finally made it worth staying." }, { name: "Framer", note: "For prototypes that need to feel real." }, { name: "Excalidraw", note: "Architecture diagrams, system design sketches. No fluff." }] },
+  { title: "Productivity", items: [{ name: "Obsidian", note: "Second brain. Local-first, Markdown, no lock-in." }, { name: "Notion", note: "Project tracking and shared docs." }, { name: "Postman", note: "API testing for REST and OData services." }, { name: "GitHub CLI", note: "Living in the terminal. Faster than the web UI." }] },
+  { title: "Fonts & Typography", items: [{ name: "Playfair Display", note: "My current serif default for editorial work." }, { name: "DM Sans", note: "Cleanest variable sans for interfaces." }, { name: "JetBrains Mono", note: "Best monospaced for long coding sessions." }] },
 ];
 
 type UseItem = { name: string; note: string };
@@ -30,7 +29,6 @@ export default async function UsesPage() {
         return items.length > 0 ? { title: label, items } : null;
       };
       const built = [
-        build(data.hardware, "Hardware"),
         build(data.software, "Development"),
         build(data.devEnv, "Design"),
         build(data.productivity, "Productivity"),

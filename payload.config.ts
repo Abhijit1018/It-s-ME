@@ -8,6 +8,7 @@ const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
 
 export default buildConfig({
+  // IMPORTANT: set a strong random PAYLOAD_SECRET in production env vars
   secret: process.env.PAYLOAD_SECRET ?? "dev-secret-change-this",
   admin: {
     user: "users",

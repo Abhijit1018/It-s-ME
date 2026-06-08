@@ -190,30 +190,23 @@ export function HeroSection() {
             {/* Name headline — perspective for 3D char reveal */}
             <div
               ref={headlineRef}
-              aria-label={HERO.name}
               style={{ perspective: "600px" }}
             >
               <h1
                 className="font-serif leading-none"
+                aria-label={HERO.name}
                 style={{
                   fontFamily: "var(--font-serif)",
-                  color: "#F7F4EF",
                   fontSize: "clamp(3.5rem, 10vw, 8rem)",
                   letterSpacing: "-0.04em",
                 }}
               >
-                {wrapChars(HERO.name.split(" ")[0])}
-              </h1>
-              <h1
-                className="font-serif leading-none"
-                style={{
-                  fontFamily: "var(--font-serif)",
-                  color: "var(--accent-sage)",
-                  fontSize: "clamp(3.5rem, 10vw, 8rem)",
-                  letterSpacing: "-0.04em",
-                }}
-              >
-                {wrapChars(HERO.name.split(" ").slice(1).join(" "))}
+                <span style={{ color: "#F7F4EF", display: "block" }}>
+                  {wrapChars(HERO.name.split(" ")[0])}
+                </span>
+                <span style={{ color: "var(--accent-sage)", display: "block" }}>
+                  {wrapChars(HERO.name.split(" ").slice(1).join(" "))}
+                </span>
               </h1>
             </div>
 

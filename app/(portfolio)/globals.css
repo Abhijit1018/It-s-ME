@@ -4,6 +4,7 @@
 :root {
   /* Backgrounds */
   --bg-primary: #F7F4EF;
+  --bg-secondary: #EFECE6;
   --bg-surface: rgba(247, 244, 239, 0.85);
 
   /* Text */
@@ -35,6 +36,7 @@
 /* ─── Dark Mode ──────────────────────────────────────────────── */
 [data-theme="dark"] {
   --bg-primary: #1A1814;
+  --bg-secondary: #232018;
   --bg-surface: rgba(26, 24, 20, 0.85);
   --text-primary: #EDE8DF;
   --text-secondary: #A8A49B;
@@ -48,6 +50,7 @@
 /* ─── Warm Dim Mode ──────────────────────────────────────────── */
 [data-theme="warm"] {
   --bg-primary: #1C1611;
+  --bg-secondary: #251D15;
   --bg-surface: rgba(28, 22, 17, 0.85);
   --text-primary: #E8DCC8;
   --text-secondary: #B0A490;

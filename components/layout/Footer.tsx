@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { AmbientSound } from "@/components/ui/AmbientSound";
 
 const socialLinks = [
   { href: "https://github.com/Abhijit1018/", label: "GitHub", handle: "@Abhijit1018" },
@@ -91,15 +90,12 @@ export function Footer() {
           <p className="text-xs" style={{ color: "var(--text-tertiary)" }}>
             © {year} Abhijit Singh — All rights reserved
           </p>
-          <div className="flex items-center gap-6">
-            <AmbientSound />
-            <p
-              className="text-xs"
-              style={{ color: "var(--text-tertiary)", fontFamily: "var(--font-mono)" }}
-            >
-              Built with Next.js + Three.js
-            </p>
-          </div>
+          <p
+            className="text-xs"
+            style={{ color: "var(--text-tertiary)", fontFamily: "var(--font-mono)" }}
+          >
+            Built with Next.js + Three.js
+          </p>
         </div>
       </div>
     </footer>

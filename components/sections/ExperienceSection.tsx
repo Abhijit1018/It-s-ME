@@ -13,40 +13,41 @@ type ExperienceItem = {
 
 const EXPERIENCE: ExperienceItem[] = [
   {
-    role: "Full-Stack Developer & AI Engineer",
-    company: "Independent / Freelance",
+    role: "SAP Full Stack Developer Intern",
+    company: "VegaH LLC",
+    period: "Nov 2025 — Present",
+    location: "Remote",
+    type: "Internship",
+    highlights: [
+      "Developing enterprise applications using the RAP (RESTful ABAP Programming) model on SAP BTP.",
+      "Designing CDS data models and implementing OData services for real-time business workflows.",
+      "Building Fiori UI5 applications integrated with ABAP backend logic and SAP BTP services.",
+      "Integrating AI services into SAP systems for automation, intelligent reporting, and outreach workflows.",
+      "Led development of Recall — an AI-driven system to identify overdue customers and automate communication via Twilio and email pipelines.",
+    ],
+  },
+  {
+    role: "Python Django Intern",
+    company: "Infosys Springboard",
+    period: "Sep 2025 — Nov 2025",
+    location: "Remote",
+    type: "Internship",
+    highlights: [
+      "Developed full-stack applications using Django and Streamlit, building REST APIs with modular backend architecture.",
+      "Improved system scalability through structured Django backend design patterns.",
+      "Delivered project under agile workflow and presented outcomes to leadership.",
+    ],
+  },
+  {
+    role: "Independent Developer — AI & Open Source",
+    company: "Self-directed",
     period: "2024 — Present",
     location: "Vadodara, India",
-    type: "Self-Employed",
+    type: "Projects",
     highlights: [
       "Built Arora AI — an autonomous Python agent with tool use, persistent memory, and multi-step reasoning.",
       "Developed Bharat Biz Agent: a voice + chat assistant handling Hindi, Hinglish, and English for Indian SMEs.",
-      "Shipped 39+ public GitHub repositories across Python, TypeScript, JavaScript, .NET/C#, and HTML.",
-      "Built full-stack TypeScript projects: ShieldRoute (secure routing framework), Nexus OS (browser OS UI), Living Blossom.",
-    ],
-  },
-  {
-    role: "SAP Backend Developer",
-    company: "SAP Certified",
-    period: "2024",
-    location: "Remote",
-    type: "Certification & Practice",
-    highlights: [
-      "Achieved SAP Backend Certification, covering ABAP development, data dictionary, and ERP integration patterns.",
-      "Built internal tooling to bridge SAP systems with modern REST APIs and Python microservices.",
-      "Explored CQRS and clean architecture patterns applied to enterprise-scale ERP data flows.",
-    ],
-  },
-  {
-    role: ".NET & Enterprise Developer",
-    company: "Independent",
-    period: "2024 — Present",
-    location: "Vadodara, India",
-    type: "Learning & Projects",
-    highlights: [
-      "Deep dived into ASP.NET Core, Entity Framework Core, and CQRS architecture patterns.",
-      "Implemented REST APIs and data-intensive backend systems in C# alongside Python and TypeScript work.",
-      "Exploring Unity with C# for indie game development as a side focus.",
+      "Shipped 39+ public GitHub repositories across Python, TypeScript, JavaScript, ABAP, and C#.",
     ],
   },
 ];

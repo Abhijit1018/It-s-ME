@@ -11,8 +11,7 @@ export const metadata: Metadata = {
 const socialLinks = [
   { href: "https://github.com/Abhijit1018", label: "GitHub", handle: "@Abhijit1018" },
   { href: "https://www.linkedin.com/in/abhijit-singh10", label: "LinkedIn", handle: "abhijit-singh10" },
-  { href: "https://abhijitsingh01.netlify.app", label: "Portfolio (old)", handle: "abhijitsingh01.netlify.app" },
-  { href: "mailto:hello@example.com", label: "Email", handle: "hello@example.com" },
+  { href: "mailto:abhijeetrathore104@gmail.com", label: "Email", handle: "abhijeetrathore104@gmail.com" },
 ];
 
 export default function ContactPage() {
