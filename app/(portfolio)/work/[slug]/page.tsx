@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Footer } from "@/components/layout/Footer";
 import { notFound } from "next/navigation";
+import { getPayload } from "payload";
+import configPromise from "@payload-config";
+import { lexicalToHtml } from "@/lib/serialize-richtext";
 
 const projects: Record<string, {
   title: string;
@@ -175,10 +178,76 @@ const projects: Record<string, {
   },
 };
 
-export function generateStaticParams() {
-  return Object.keys(projects).map((slug) => ({ slug }));
+type ProjectData = {
+  title: string;
+  year: string;
+  category: string;
+  liveUrl?: string;
+  githubUrl?: string;
+  accent: string;
+  overview: string;
+  problem: string;
+  solution: string;
+  techStack: string[];
+  nextSlug: string;
+  nextTitle: string;
+  richProblem?: string;
+  richSolution?: string;
+};
+
+async function getProject(slug: string): Promise<ProjectData | null> {
+  try {
+    const payload = await getPayload({ config: configPromise });
+    const { docs } = await payload.find({
+      collection: "projects",
+      where: { slug: { equals: slug } },
+      limit: 1,
+    });
+    if (!docs.length) return null;
+    const doc = docs[0] as any;
+
+    // find adjacent project for "next project" nav
+    const { docs: allDocs } = await payload.find({
+      collection: "projects",
+      where: { published: { equals: true } },
+      sort: "order",
+      limit: 100,
+    });
+    const idx = allDocs.findIndex((d: any) => d.slug === slug);
+    const next = allDocs[(idx + 1) % allDocs.length] as any;
+
+    return {
+      title: doc.title,
+      year: doc.year ?? "",
+      category: doc.category ?? "",
+      liveUrl: doc.liveUrl,
+      githubUrl: doc.githubRepo,
+      accent: doc.color ?? "#7B9E87",
+      overview: doc.summary ?? "",
+      problem: "",
+      solution: "",
+      richProblem: lexicalToHtml(doc.problem),
+      richSolution: lexicalToHtml(doc.solution),
+      techStack: (doc.techStack ?? []).map((t: any) => t.name).filter(Boolean),
+      nextSlug: next?.slug ?? slug,
+      nextTitle: next?.title ?? doc.title,
+    };
+  } catch {
+    return null;
+  }
 }
 
+export async function generateStaticParams() {
+  const hardcoded = Object.keys(projects).map((slug) => ({ slug }));
+  try {
+    const payload = await getPayload({ config: configPromise });
+    const { docs } = await payload.find({ collection: "projects", limit: 200 });
+    const fromCms = (docs as any[]).map((d) => ({ slug: d.slug }));
+    return [...hardcoded, ...fromCms.filter((d) => !projects[d.slug])];
+  } catch {
+    return hardcoded;
+  }
+}
 
 export async function generateMetadata({
   params,
@@ -186,11 +255,12 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const project = projects[slug];
+  const fromCms = await getProject(slug);
+  const project = fromCms ?? projects[slug];
   if (!project) return {};
   return {
     title: project.title,
-    description: project.overview,
+    description: project.overview || (fromCms as any)?.overview,
   };
 }
 
@@ -200,7 +270,8 @@ export default async function ProjectPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const project = projects[slug];
+  const fromCms = await getProject(slug);
+  const project: ProjectData | undefined = fromCms ?? (projects[slug] as any);
   if (!project) notFound();
 
   return (
@@ -281,18 +352,34 @@ export default async function ProjectPage({
 
             <section>
               <p className="section-number mb-4">The Problem</p>
-              <p className="leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-                {project.problem}
-              </p>
+              {(project as ProjectData).richProblem ? (
+                <div
+                  className="prose-editorial leading-relaxed"
+                  style={{ color: "var(--text-secondary)" }}
+                  dangerouslySetInnerHTML={{ __html: (project as ProjectData).richProblem! }}
+                />
+              ) : (
+                <p className="leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+                  {project.problem}
+                </p>
+              )}
             </section>
 
             <div className="rule-horizontal" />
 
             <section>
               <p className="section-number mb-4">The Approach</p>
-              <p className="leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-                {project.solution}
-              </p>
+              {(project as ProjectData).richSolution ? (
+                <div
+                  className="prose-editorial leading-relaxed"
+                  style={{ color: "var(--text-secondary)" }}
+                  dangerouslySetInnerHTML={{ __html: (project as ProjectData).richSolution! }}
+                />
+              ) : (
+                <p className="leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+                  {project.solution}
+                </p>
+              )}
             </section>
 
             <div className="rule-horizontal" />

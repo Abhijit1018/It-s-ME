@@ -3,6 +3,9 @@ import Link from "next/link";
 import { Footer } from "@/components/layout/Footer";
 import { ReadingProgress } from "@/components/ui/ReadingProgress";
 import { notFound } from "next/navigation";
+import { getPayload } from "payload";
+import configPromise from "@payload-config";
+import { lexicalToHtml } from "@/lib/serialize-richtext";
 
 const posts: Record<string, {
   title: string;
@@ -201,8 +204,48 @@ Start with the governance model, not the pipeline. The tools are easy to change.
   },
 };
 
-export function generateStaticParams() {
-  return Object.keys(posts).map((slug) => ({ slug }));
+type PostData = {
+  title: string;
+  date: string;
+  readingTime: string;
+  tags: string[];
+  content: string;
+  richContent?: string;
+};
+
+async function getPost(slug: string): Promise<PostData | null> {
+  try {
+    const payload = await getPayload({ config: configPromise });
+    const { docs } = await payload.find({
+      collection: "writing",
+      where: { slug: { equals: slug } },
+      limit: 1,
+    });
+    if (!docs.length) return null;
+    const doc = docs[0] as any;
+    return {
+      title: doc.title,
+      date: doc.publishedAt ? doc.publishedAt.split("T")[0] : "",
+      readingTime: doc.readingTime ?? "",
+      tags: (doc.tags ?? []).map((t: any) => t.tag).filter(Boolean),
+      content: "",
+      richContent: lexicalToHtml(doc.content),
+    };
+  } catch {
+    return null;
+  }
+}
+
+export async function generateStaticParams() {
+  const hardcoded = Object.keys(posts).map((slug) => ({ slug }));
+  try {
+    const payload = await getPayload({ config: configPromise });
+    const { docs } = await payload.find({ collection: "writing", limit: 200 });
+    const fromCms = (docs as any[]).map((d) => ({ slug: d.slug }));
+    return [...hardcoded, ...fromCms.filter((d) => !posts[d.slug])];
+  } catch {
+    return hardcoded;
+  }
 }
 
 export async function generateMetadata({
@@ -211,7 +254,8 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const post = posts[slug];
+  const fromCms = await getPost(slug);
+  const post = fromCms ?? posts[slug];
   if (!post) return {};
   return { title: post.title };
 }
@@ -230,7 +274,8 @@ export default async function WritingPostPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const post = posts[slug];
+  const fromCms = await getPost(slug);
+  const post: PostData | undefined = fromCms ?? (posts[slug] as any);
   if (!post) notFound();
 
   return (
@@ -294,43 +339,36 @@ export default async function WritingPostPage({
           {/* Content */}
           <div
             className="prose-editorial"
-            style={{
-              color: "var(--text-secondary)",
-              lineHeight: "1.8",
-            }}
+            style={{ color: "var(--text-secondary)", lineHeight: "1.8" }}
           >
-            {post.content.trim().split("\n\n").map((para, i) => {
-              // Standalone heading: entire paragraph is **heading**
-              if (/^\*\*[^*]+\*\*$/.test(para.trim())) {
+            {post.richContent ? (
+              <div dangerouslySetInnerHTML={{ __html: post.richContent }} />
+            ) : (
+              post.content.trim().split("\n\n").map((para, i) => {
+                if (/^\*\*[^*]+\*\*$/.test(para.trim())) {
+                  return (
+                    <h2
+                      key={i}
+                      className="font-serif mt-10 mb-4"
+                      style={{ fontFamily: "var(--font-serif)", color: "var(--text-primary)", fontSize: "1.4rem" }}
+                    >
+                      {para.trim().slice(2, -2)}
+                    </h2>
+                  );
+                }
                 return (
-                  <h2
-                    key={i}
-                    className="font-serif mt-10 mb-4"
-                    style={{
-                      fontFamily: "var(--font-serif)",
-                      color: "var(--text-primary)",
-                      fontSize: "1.4rem",
-                    }}
-                  >
-                    {para.trim().slice(2, -2)}
-                  </h2>
+                  <p key={i} className="mb-5" style={{ color: "var(--text-secondary)" }}>
+                    {para.split(/(\*\*[^*]+\*\*)/).map((chunk, j) =>
+                      chunk.startsWith("**") && chunk.endsWith("**") ? (
+                        <strong key={j} style={{ color: "var(--text-primary)", fontWeight: 600 }}>
+                          {chunk.slice(2, -2)}
+                        </strong>
+                      ) : chunk
+                    )}
+                  </p>
                 );
-              }
-              // Paragraph with possible inline bold spans
-              return (
-                <p key={i} className="mb-5" style={{ color: "var(--text-secondary)" }}>
-                  {para.split(/(\*\*[^*]+\*\*)/).map((chunk, j) =>
-                    chunk.startsWith("**") && chunk.endsWith("**") ? (
-                      <strong key={j} style={{ color: "var(--text-primary)", fontWeight: 600 }}>
-                        {chunk.slice(2, -2)}
-                      </strong>
-                    ) : (
-                      chunk
-                    )
-                  )}
-                </p>
-              );
-            })}
+              })
+            )}
           </div>
 
           {/* Share */}

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { revalidatePath, revalidateTag } from "next/cache";
+import { revalidatePath } from "next/cache";
 
 // Called by Payload CMS webhooks after content changes.
 // Set REVALIDATE_SECRET in your .env to a random string and
@@ -47,9 +47,6 @@ export async function POST(req: NextRequest) {
       // Revalidate everything
       revalidatePath("/", "layout");
   }
-
-  // Also invalidate the github cache tag if needed
-  revalidateTag("github-repos");
 
   return NextResponse.json({ revalidated: true, collection, slug });
 }
