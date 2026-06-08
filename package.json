@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "migrate": "node --import tsx/esm scripts/migrate.mjs",
+    "migrate": "tsx scripts/migrate.mts",
     "generate:importmap": "tsx generate-importmap.mts",
     "seed": "tsx scripts/seed.mts"
   },
