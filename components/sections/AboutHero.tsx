@@ -81,8 +81,18 @@ export function AboutHero() {
           </h1>
           <p style={{ color: "rgba(237, 232, 223, 0.75)", maxWidth: "55ch" }}>
             Designer-developer. I think in systems, feel in details, and build with both.
-            Based in Berlin, working globally.
+            Based in Vadodara, Gujarat — working with clients globally.
           </p>
+          <a
+            href="/resume/Abhijit-Singh-Resume.pdf"
+            target="_blank"
+            rel="noopener noreferrer"
+            download
+            className="inline-flex items-center gap-2 text-sm mt-6 px-4 py-2 rounded-full transition-colors"
+            style={{ border: "1px solid rgba(237, 232, 223, 0.4)", color: "#F7F4EF" }}
+          >
+            Download résumé ↓
+          </a>
         </div>
       </div>
     </section>

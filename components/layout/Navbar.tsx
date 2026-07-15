@@ -127,6 +127,18 @@ export function Navbar() {
               );
             })}
 
+            {/* Resume */}
+            <a
+              href="/resume/Abhijit-Singh-Resume.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              download
+              className="text-sm tracking-wide"
+              style={{ color: "var(--text-secondary)", fontFamily: "var(--font-sans)" }}
+            >
+              Résumé
+            </a>
+
             {/* Availability */}
             <AvailabilityDot />
 
@@ -225,6 +237,16 @@ export function Navbar() {
 
             <div className="absolute bottom-8 left-8 right-8 flex items-center justify-between">
               <AvailabilityDot />
+              <a
+                href="/resume/Abhijit-Singh-Resume.pdf"
+                target="_blank"
+                rel="noopener noreferrer"
+                download
+                className="text-sm"
+                style={{ color: "var(--text-tertiary)" }}
+              >
+                Résumé ↓
+              </a>
               <button
                 onClick={cycleTheme}
                 className="text-sm"
