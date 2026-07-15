@@ -43,3 +43,15 @@ export function lexicalToHtml(content: unknown): string {
   if (!root?.children) return "";
   return root.children.map(serializeNode).join("");
 }
+
+function textOf(node: LexicalNode): string {
+  if (node.type === "text") return node.text ?? "";
+  return node.children?.map(textOf).join("") ?? "";
+}
+
+export function lexicalToParagraphs(content: unknown): string[] {
+  if (!content || typeof content !== "object") return [];
+  const root = (content as { root?: LexicalNode }).root;
+  if (!root?.children) return [];
+  return root.children.map(textOf).filter(Boolean);
+}

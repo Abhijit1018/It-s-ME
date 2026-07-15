@@ -11,7 +11,7 @@ type ExperienceItem = {
   highlights: string[];
 };
 
-const EXPERIENCE: ExperienceItem[] = [
+const FALLBACK_EXPERIENCE: ExperienceItem[] = [
   {
     role: "SAP Full Stack Developer Intern",
     company: "VegaH LLC",
@@ -52,7 +52,8 @@ const EXPERIENCE: ExperienceItem[] = [
   },
 ];
 
-export function ExperienceSection() {
+export function ExperienceSection({ items }: { items?: ExperienceItem[] }) {
+  const EXPERIENCE = items && items.length > 0 ? items : FALLBACK_EXPERIENCE;
   const sectionRef = useRef<HTMLElement>(null);
 
   useEffect(() => {

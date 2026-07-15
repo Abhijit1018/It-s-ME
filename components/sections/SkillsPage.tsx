@@ -8,7 +8,13 @@ const SkillsOrbit = dynamic(
   { ssr: false, loading: () => <div className="w-full h-full" /> }
 );
 
-const skillData: Record<string, { name: string; proficiency: number }[]> = {
+type SkillEntry = { name: string; proficiency: number };
+type SkillsProps = {
+  skillData?: Record<string, SkillEntry[]>;
+  currentlyLearning?: string[];
+};
+
+const FALLBACK_SKILL_DATA: Record<string, { name: string; proficiency: number }[]> = {
   Frontend: [
     { name: "TypeScript", proficiency: 5 },
     { name: "React / Next.js", proficiency: 4 },
@@ -44,7 +50,7 @@ const skillData: Record<string, { name: string; proficiency: number }[]> = {
   ],
 };
 
-const currentlyLearning = ["Three.js / 3D Web", "Advanced .NET", "GSAP Animations", "Game Dev (Unity)"];
+const FALLBACK_LEARNING = ["Three.js / 3D Web", "Advanced .NET", "GSAP Animations", "Game Dev (Unity)"];
 
 function ProficiencyBar({ level }: { level: number }) {
   return (
@@ -69,7 +75,9 @@ function ProficiencyBar({ level }: { level: number }) {
   );
 }
 
-export function SkillsPage() {
+export function SkillsPage({ skillData: cmsSkillData, currentlyLearning: cmsLearning }: SkillsProps) {
+  const skillData = cmsSkillData && Object.keys(cmsSkillData).length > 0 ? cmsSkillData : FALLBACK_SKILL_DATA;
+  const currentlyLearning = cmsLearning && cmsLearning.length > 0 ? cmsLearning : FALLBACK_LEARNING;
   const [selectedCluster, setSelectedCluster] = useState<string>("");
 
   const displayCategory = selectedCluster && skillData[selectedCluster]

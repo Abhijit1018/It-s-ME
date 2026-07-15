@@ -8,6 +8,8 @@ import * as THREE from "three";
 const skillClusters = [
   { name: "Frontend", color: "#7B9E87", position: [0, 0, 0] as [number, number, number], radius: 0 },
   { name: "Backend", color: "#D4B896", position: [3.5, 0.5, 0] as [number, number, number], radius: 3.5 },
+  { name: "AI", color: "#8890C4", position: [0, -3.5, -1.5] as [number, number, number], radius: 3.6 },
+  { name: "Enterprise", color: "#6090A0", position: [3, -2, 2] as [number, number, number], radius: 3.4 },
   { name: "DevOps", color: "#C4847A", position: [-3, 1, 1] as [number, number, number], radius: 3.1 },
   { name: "Design", color: "#A8C4B0", position: [1, 3, -1] as [number, number, number], radius: 3.2 },
   { name: "Other", color: "#BFA090", position: [-1.5, -3, 0.5] as [number, number, number], radius: 3.3 },

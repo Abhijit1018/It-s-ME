@@ -1,12 +1,14 @@
 /**
- * Seed script — populates Payload collections with hardcoded frontend data.
+ * Seed script — populates Payload collections from the site's real data sources
+ * (lib/projects.ts, resume, GitHub) so the CMS admin reflects what's live.
  *
  * Usage:
  *   npm run seed
  *   (or: npx tsx scripts/seed.mts)
  *
- * Safe to run multiple times — skips items that already exist (matched by slug/title).
- * Requires DATABASE_URL to be set in .env.local or environment.
+ * True upsert: updates existing docs (matched by slug/title/role) with the
+ * latest data instead of skipping them, so re-running after a content change
+ * actually syncs it. Requires DATABASE_URL to be set in .env or .env.local.
  */
 
 import { pathToFileURL } from "node:url";
@@ -14,30 +16,52 @@ import path from "path";
 import dotenv from "dotenv";
 
 // tsx does not load .env.local automatically — load it before Payload initialises
-dotenv.config({ path: ".env.local" });
+dotenv.config({ path: ".env" });
+dotenv.config({ path: ".env.local", override: true });
 
 const cwd = process.cwd();
 
-// Load env the same way Payload does (reuses the patched loadEnv workaround)
 process.env.DISABLE_PAYLOAD_HMR = "true";
 
 const { getPayload } = await import("payload");
 const { default: configPromise } = await import(
   pathToFileURL(path.join(cwd, "payload.config.ts")).toString()
 );
+const { PROJECTS, PROJECT_SLUGS } = await import("../lib/projects.ts");
 
 const payload = await getPayload({ config: configPromise });
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Helper
+// Helpers
 // ──────────────────────────────────────────────────────────────────────────────
+function toLexical(paragraphs: string | string[]) {
+  const texts = Array.isArray(paragraphs) ? paragraphs : [paragraphs];
+  return {
+    root: {
+      type: "root",
+      direction: "ltr",
+      format: "",
+      indent: 0,
+      version: 1,
+      children: texts.map((text) => ({
+        type: "paragraph",
+        direction: "ltr",
+        format: "",
+        indent: 0,
+        version: 1,
+        children: [{ type: "text", text, format: 0, detail: 0, mode: "normal", style: "", version: 1 }],
+      })),
+    },
+  };
+}
+
 async function upsertCollection(
   collection: string,
   items: Array<Record<string, unknown>>,
   uniqueField: string
 ) {
   let created = 0;
-  let skipped = 0;
+  let updated = 0;
   for (const item of items) {
     const existing = await (payload as any).find({
       collection,
@@ -45,46 +69,141 @@ async function upsertCollection(
       limit: 1,
     });
     if (existing.docs.length > 0) {
-      skipped++;
+      await (payload as any).update({ collection, id: existing.docs[0].id, data: item });
+      updated++;
     } else {
       await (payload as any).create({ collection, data: item });
       created++;
     }
   }
-  console.log(`  ${collection}: ${created} created, ${skipped} skipped`);
+  console.log(`  ${collection}: ${created} created, ${updated} updated`);
+}
+
+// Deletes docs whose uniqueField value isn't in the current canonical list.
+// Only safe for collections this script fully owns (skills, milestones) —
+// never run on collections that may hold freeform admin-authored entries.
+async function pruneCollection(
+  collection: string,
+  currentValues: string[],
+  uniqueField: string
+) {
+  const { docs } = await (payload as any).find({ collection, limit: 500 });
+  const keep = new Set(currentValues);
+  let removed = 0;
+  for (const doc of docs as any[]) {
+    if (!keep.has(doc[uniqueField])) {
+      await (payload as any).delete({ collection, id: doc.id });
+      removed++;
+    }
+  }
+  if (removed > 0) console.log(`  ${collection}: ${removed} stale entries removed`);
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Projects (8 from WorkGallery, featured flags for top 3)
+// Projects — derived from lib/projects.ts, the same source the UI fallback uses
 // ──────────────────────────────────────────────────────────────────────────────
 console.log("\nSeeding projects...");
+const FEATURED_SLUGS = new Set(["arora-ai", "bharat-biz-agent", "shieldroute"]);
 await upsertCollection(
   "projects",
-  [
-    { slug: "arora-ai", title: "Arora AI", year: "2025", category: "AI", color: "#7B9E87", summary: "The master agent for your machine — an autonomous AI assistant built in Python with tool use, memory, and multi-step reasoning.", featured: true, published: true, order: 1 },
-    { slug: "bharat-biz-agent", title: "Bharat Biz Agent", year: "2025", category: "AI", color: "#D4B896", summary: "Voice + chat based business assistant for Hindi, English, and Hinglish speakers. Multi-lingual LLM orchestration for Indian SMEs.", featured: true, published: true, order: 2 },
-    { slug: "shieldroute", title: "ShieldRoute", year: "2025", category: "TypeScript", color: "#C4847A", summary: "A TypeScript-based secure routing framework. Declarative route protection with middleware composition.", featured: true, published: true, order: 3 },
-    { slug: "living-blossom", title: "Living Blossom", year: "2025", category: "Web", color: "#A8C4B0", summary: "A TypeScript web application — elegant UI with a focus on interaction design and component architecture.", featured: false, published: true, order: 4 },
-    { slug: "nexus-os", title: "Nexus OS", year: "2025", category: "TypeScript", color: "#9BB8A4", summary: "An operating-system-inspired TypeScript project exploring windowed UI, file system abstractions, and process management in the browser.", featured: false, published: true, order: 5 },
-    { slug: "legacy-lens", title: "LegacyLens", year: "2025", category: "Python", color: "#BFA090", summary: "The code legacy optimizer — analyzes Python codebases, identifies technical debt, and suggests refactoring paths using static analysis.", featured: false, published: true, order: 6 },
-    { slug: "code-legacy-frontend", title: "Code Legacy Frontend", year: "2025", category: "Web", color: "#B0A8C4", summary: "Frontend dashboard for the Code Legacy platform — visualizing codebase health metrics and refactoring recommendations.", featured: false, published: true, order: 7 },
-    { slug: "e-flower", title: "E-Flower", year: "2025", category: "Web", color: "#C4A8B0", summary: "Full-stack e-commerce application for a floral business, with product catalog, cart, and order management.", featured: false, published: true, order: 8 },
-  ],
+  PROJECT_SLUGS.map((slug, i) => {
+    const p = PROJECTS[slug];
+    return {
+      slug,
+      title: p.title,
+      year: p.year,
+      category: p.category,
+      color: p.accent,
+      summary: p.blurb,
+      liveUrl: p.liveUrl,
+      githubRepo: p.githubUrl,
+      techStack: p.techStack.map((name) => ({ name })),
+      problem: toLexical(p.problem),
+      solution: toLexical(p.solution),
+      featured: FEATURED_SLUGS.has(slug),
+      published: true,
+      order: i + 1,
+    };
+  }),
   "slug"
 );
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Milestones (Timeline entries)
+// Experience — from resume (SAP_Python_Stack_Abhijit.pdf)
+// ──────────────────────────────────────────────────────────────────────────────
+console.log("\nSeeding experience...");
+await upsertCollection(
+  "experience",
+  [
+    {
+      role: "SAP Full Stack Developer Intern",
+      company: "VegaH LLC",
+      startDate: "2025-11-01",
+      description: toLexical([
+        "Developed enterprise applications on SAP BTP using ABAP Cloud and RAP for SAP S/4HANA integration.",
+        "Designed CDS Views, OData V2/V4 services, and SAP Fiori applications following clean architecture practices.",
+        "Implemented business logic using RAP behavior definitions and service bindings.",
+        "Integrated AI-powered automation workflows with enterprise SAP applications, including Recall — an AI-driven system to identify overdue customers and automate communication via Twilio and email pipelines.",
+        "Worked with SAP HANA Cloud, Cloud Foundry, SAP Business Application Studio, Git, and Agile development practices.",
+      ]),
+      visible: true,
+    },
+    {
+      role: "Python Django Intern",
+      company: "Infosys Springboard",
+      startDate: "2025-09-01",
+      endDate: "2025-11-01",
+      description: toLexical([
+        "Developed full-stack web applications using Python, Django, HTML, CSS, JavaScript, and MySQL.",
+        "Built REST APIs and scalable backend services for data-driven applications.",
+        "Designed responsive user interfaces and collaborated in Agile project delivery.",
+      ]),
+      visible: true,
+    },
+    {
+      role: "Independent Developer — AI & Open Source",
+      company: "Self-directed",
+      startDate: "2024-01-01",
+      description: toLexical([
+        "Built Arora AI — an autonomous Python agent with tool use, persistent memory, and multi-step reasoning.",
+        "Developed Bharat Biz Agent — a voice + chat assistant handling Hindi, Hinglish, and English for Indian SMEs.",
+        "Shipped 39+ public GitHub repositories across Python, TypeScript, JavaScript, ABAP, and C#.",
+      ]),
+      visible: true,
+    },
+  ],
+  "role"
+);
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Milestones (Timeline entries + real certifications)
 // ──────────────────────────────────────────────────────────────────────────────
 console.log("\nSeeding milestones...");
 await upsertCollection(
   "milestones",
   [
-    { year: "2025", title: "AI Agent Development", company: "Independent", type: "Open Source", description: "Building autonomous AI agents — Arora AI and Bharat Biz Agent — exploring voice interfaces, multi-lingual support, and LLM orchestration.", order: 1, visible: true },
-    { year: "2025", title: "SAP Backend Certified", company: "SAP", type: "Certification", description: "Achieved SAP backend certification, bridging enterprise ERP systems with modern web and Python development.", order: 2, visible: true },
-    { year: "2025", title: "Full-Stack TypeScript Projects", company: "Independent", type: "Projects", description: "Shipped multiple TypeScript projects — ShieldRoute, Living Blossom, Nexus OS — expanding into modern frontend architecture with Next.js and Three.js.", order: 3, visible: true },
-    { year: "2025", title: ".NET & Enterprise Development", company: "Independent", type: "Learning", description: "Deep dived into the .NET ecosystem, building enterprise-grade backend systems alongside Python and JavaScript projects.", order: 4, visible: true },
-    { year: "2025", title: "Started the Journey", company: "GitHub", type: "Milestone", description: "Joined GitHub and immediately shipped 39+ repositories across Python, TypeScript, JavaScript, and HTML — zero to full-stack in months.", order: 5, visible: true },
+    { year: "2025", title: "SAP Certified Associate — Back-End Developer (ABAP Cloud)", company: "SAP", type: "Certification", description: "Certified in ABAP Cloud back-end development on SAP BTP.", order: 1, visible: true },
+    { year: "2025", title: "SAP Certified Associate — SAP S/4HANA Cloud Public Edition", company: "SAP", type: "Certification", description: "Certified on SAP S/4HANA Cloud Public Edition implementation and configuration.", order: 2, visible: true },
+    { year: "2025", title: "Oracle OCI 2025 Data Science Professional", company: "Oracle", type: "Certification", description: "Certified in data science on Oracle Cloud Infrastructure.", order: 3, visible: true },
+    { year: "2025", title: "AWS Certified Cloud Practitioner", company: "AWS", type: "Certification", description: "Foundational certification in AWS cloud services and architecture.", order: 4, visible: true },
+    { year: "2025", title: "SAP Full Stack Developer Intern — VegaH", company: "VegaH LLC", type: "Milestone", description: "Started building enterprise SAP BTP applications with ABAP Cloud, RAP, and CDS Views.", order: 5, visible: true },
+    { year: "2025", title: "AI Agent Development", company: "Independent", type: "Open Source", description: "Building autonomous AI agents — Arora AI and Bharat Biz Agent — exploring voice interfaces, multi-lingual support, and LLM orchestration.", order: 6, visible: true },
+    { year: "2025", title: "Full-Stack TypeScript Projects", company: "Independent", type: "Projects", description: "Shipped multiple TypeScript projects — ShieldRoute, Living Blossom, Nexus OS — expanding into modern frontend architecture with Next.js and Three.js.", order: 7, visible: true },
+    { year: "2024", title: "Started the Journey", company: "GitHub", type: "Milestone", description: "Joined GitHub and shipped dozens of repositories across Python, TypeScript, JavaScript, and ABAP.", order: 8, visible: true },
+  ],
+  "title"
+);
+await pruneCollection(
+  "milestones",
+  [
+    "SAP Certified Associate — Back-End Developer (ABAP Cloud)",
+    "SAP Certified Associate — SAP S/4HANA Cloud Public Edition",
+    "Oracle OCI 2025 Data Science Professional",
+    "AWS Certified Cloud Practitioner",
+    "SAP Full Stack Developer Intern — VegaH",
+    "AI Agent Development",
+    "Full-Stack TypeScript Projects",
+    "Started the Journey",
   ],
   "title"
 );
@@ -105,7 +224,7 @@ await upsertCollection(
 );
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Skills (25 skills across 5 categories)
+// Skills — from resume's Technical Skills section + portfolio-proven extras
 // ──────────────────────────────────────────────────────────────────────────────
 console.log("\nSeeding skills...");
 const allSkills = [
@@ -113,35 +232,51 @@ const allSkills = [
   { name: "TypeScript", category: "Frontend", proficiency: 5, visible: true, currentlyLearning: false, order: 1 },
   { name: "React / Next.js", category: "Frontend", proficiency: 4, visible: true, currentlyLearning: false, order: 2 },
   { name: "JavaScript (ES2024)", category: "Frontend", proficiency: 5, visible: true, currentlyLearning: false, order: 3 },
-  { name: "HTML / CSS / Tailwind", category: "Frontend", proficiency: 4, visible: true, currentlyLearning: false, order: 4 },
-  { name: "Three.js / WebGL", category: "Frontend", proficiency: 3, visible: true, currentlyLearning: true, order: 5 },
+  { name: "HTML5 / CSS3 / Tailwind CSS", category: "Frontend", proficiency: 4, visible: true, currentlyLearning: false, order: 4 },
+  { name: "SAPUI5", category: "Frontend", proficiency: 4, visible: true, currentlyLearning: false, order: 5 },
+  { name: "Three.js / WebGL", category: "Frontend", proficiency: 3, visible: true, currentlyLearning: true, order: 6 },
+  { name: "GSAP Animations", category: "Frontend", proficiency: 3, visible: true, currentlyLearning: true, order: 7 },
   // Backend
-  { name: "Python", category: "Backend", proficiency: 5, visible: true, currentlyLearning: false, order: 6 },
-  { name: ".NET / C#", category: "Backend", proficiency: 4, visible: true, currentlyLearning: true, order: 7 },
-  { name: "Node.js", category: "Backend", proficiency: 4, visible: true, currentlyLearning: false, order: 8 },
-  { name: "REST API Design", category: "Backend", proficiency: 4, visible: true, currentlyLearning: false, order: 9 },
-  { name: "PostgreSQL / SQL", category: "Backend", proficiency: 3, visible: true, currentlyLearning: false, order: 10 },
+  { name: "Python", category: "Backend", proficiency: 5, visible: true, currentlyLearning: false, order: 8 },
+  { name: "Django", category: "Backend", proficiency: 4, visible: true, currentlyLearning: false, order: 9 },
+  { name: "Flask / FastAPI", category: "Backend", proficiency: 4, visible: true, currentlyLearning: false, order: 10 },
+  { name: "REST API Design", category: "Backend", proficiency: 4, visible: true, currentlyLearning: false, order: 11 },
+  { name: "Node.js", category: "Backend", proficiency: 4, visible: true, currentlyLearning: false, order: 12 },
+  { name: "MySQL / PostgreSQL", category: "Backend", proficiency: 4, visible: true, currentlyLearning: false, order: 13 },
+  { name: ".NET / C#", category: "Backend", proficiency: 2, visible: true, currentlyLearning: true, order: 14 },
   // AI
-  { name: "LLM Orchestration", category: "AI", proficiency: 4, visible: true, currentlyLearning: false, order: 11 },
-  { name: "Agent Architecture", category: "AI", proficiency: 4, visible: true, currentlyLearning: false, order: 12 },
-  { name: "Tool Use / Function Calling", category: "AI", proficiency: 4, visible: true, currentlyLearning: false, order: 13 },
-  { name: "NLP / Text Processing", category: "AI", proficiency: 3, visible: true, currentlyLearning: false, order: 14 },
-  { name: "Voice / Speech Interfaces", category: "AI", proficiency: 3, visible: true, currentlyLearning: false, order: 15 },
-  // Enterprise
-  { name: "SAP Backend", category: "Enterprise", proficiency: 4, visible: true, currentlyLearning: false, order: 16 },
-  { name: "SAP ABAP", category: "Enterprise", proficiency: 3, visible: true, currentlyLearning: false, order: 17 },
-  { name: "ERP Integration", category: "Enterprise", proficiency: 3, visible: true, currentlyLearning: false, order: 18 },
-  { name: "Business Process", category: "Enterprise", proficiency: 4, visible: true, currentlyLearning: false, order: 19 },
-  // DevOps
-  { name: "Git / GitHub", category: "DevOps", proficiency: 5, visible: true, currentlyLearning: false, order: 20 },
-  { name: "GitHub Actions", category: "DevOps", proficiency: 3, visible: true, currentlyLearning: false, order: 21 },
-  { name: "Vercel / Netlify", category: "DevOps", proficiency: 4, visible: true, currentlyLearning: false, order: 22 },
-  { name: "Docker (basics)", category: "DevOps", proficiency: 2, visible: true, currentlyLearning: false, order: 23 },
-  // GSAP as currently learning
-  { name: "GSAP Animations", category: "Frontend", proficiency: 3, visible: true, currentlyLearning: true, order: 24 },
-  { name: "Game Dev (Unity)", category: "Other", proficiency: 1, visible: true, currentlyLearning: true, order: 25 },
+  { name: "Generative AI", category: "AI", proficiency: 4, visible: true, currentlyLearning: false, order: 15 },
+  { name: "Prompt Engineering", category: "AI", proficiency: 4, visible: true, currentlyLearning: false, order: 16 },
+  { name: "AI Agents / Agent Architecture", category: "AI", proficiency: 4, visible: true, currentlyLearning: false, order: 17 },
+  { name: "LLM Orchestration", category: "AI", proficiency: 4, visible: true, currentlyLearning: false, order: 18 },
+  { name: "NLP / Text Processing", category: "AI", proficiency: 3, visible: true, currentlyLearning: false, order: 19 },
+  { name: "Workflow Automation", category: "AI", proficiency: 4, visible: true, currentlyLearning: false, order: 20 },
+  { name: "Voice / Speech Interfaces", category: "AI", proficiency: 3, visible: true, currentlyLearning: false, order: 21 },
+  // Enterprise / SAP
+  { name: "SAP BTP", category: "Enterprise", proficiency: 5, visible: true, currentlyLearning: false, order: 22 },
+  { name: "ABAP Cloud", category: "Enterprise", proficiency: 4, visible: true, currentlyLearning: false, order: 23 },
+  { name: "RAP (RESTful ABAP Programming)", category: "Enterprise", proficiency: 4, visible: true, currentlyLearning: false, order: 24 },
+  { name: "CDS Views", category: "Enterprise", proficiency: 4, visible: true, currentlyLearning: false, order: 25 },
+  { name: "OData V2/V4", category: "Enterprise", proficiency: 4, visible: true, currentlyLearning: false, order: 26 },
+  { name: "SAP HANA Cloud", category: "Enterprise", proficiency: 4, visible: true, currentlyLearning: false, order: 27 },
+  { name: "SAP Fiori", category: "Enterprise", proficiency: 4, visible: true, currentlyLearning: false, order: 28 },
+  { name: "SAP Business Application Studio", category: "Enterprise", proficiency: 4, visible: true, currentlyLearning: false, order: 29 },
+  { name: "Cloud Foundry", category: "Enterprise", proficiency: 3, visible: true, currentlyLearning: false, order: 30 },
+  { name: "SAP CAP", category: "Enterprise", proficiency: 3, visible: true, currentlyLearning: false, order: 31 },
+  // DevOps / Cloud
+  { name: "Git / GitHub", category: "DevOps", proficiency: 5, visible: true, currentlyLearning: false, order: 32 },
+  { name: "AWS", category: "DevOps", proficiency: 3, visible: true, currentlyLearning: false, order: 33 },
+  { name: "Oracle OCI", category: "DevOps", proficiency: 3, visible: true, currentlyLearning: false, order: 34 },
+  { name: "Postman", category: "DevOps", proficiency: 4, visible: true, currentlyLearning: false, order: 35 },
+  { name: "Vercel / Netlify", category: "DevOps", proficiency: 4, visible: true, currentlyLearning: false, order: 36 },
+  { name: "Docker (basics)", category: "DevOps", proficiency: 2, visible: true, currentlyLearning: false, order: 37 },
+  // Other
+  { name: "SQL", category: "Other", proficiency: 4, visible: true, currentlyLearning: false, order: 38 },
+  { name: "C", category: "Other", proficiency: 3, visible: true, currentlyLearning: false, order: 39 },
+  { name: "Game Dev (Unity)", category: "Other", proficiency: 1, visible: true, currentlyLearning: true, order: 40 },
 ];
 await upsertCollection("skills", allSkills, "name");
+await pruneCollection("skills", allSkills.map((s) => s.name), "name");
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Beliefs global (Manifesto)
@@ -170,10 +305,10 @@ await (payload as any).updateGlobal({
   slug: "stats",
   data: {
     items: [
-      { value: "39+", label: "GitHub repositories", description: "Public repos across Python, TypeScript, JavaScript, and more" },
-      { value: "6", label: "Tech domains", description: "Frontend, Backend, AI, Enterprise, DevOps, Design" },
-      { value: "5+", label: "Languages & frameworks", description: "Python, TypeScript, .NET/C#, JavaScript, SQL" },
-      { value: "1", label: "SAP certification", description: "SAP backend certified — bridging ERP and modern dev" },
+      { value: "39+", label: "GitHub repositories", description: "Public repos across Python, TypeScript, JavaScript, ABAP, and more" },
+      { value: "6", label: "Tech domains", description: "Frontend, Backend, AI, Enterprise (SAP), DevOps, Design" },
+      { value: "5+", label: "Languages & frameworks", description: "Python, ABAP, TypeScript, JavaScript, SQL, C" },
+      { value: "4", label: "Professional certifications", description: "2x SAP Certified Associate, Oracle OCI Data Science, AWS Cloud Practitioner" },
     ],
   },
 });
@@ -188,11 +323,11 @@ await (payload as any).updateGlobal({
   data: {
     building: [
       { item: "This portfolio — the one you're looking at right now." },
-      { item: "Arora AI — expanding its tool use capabilities and adding a persistent memory layer." },
-      { item: "Bharat Biz Agent — improving Hindi/Hinglish NLP accuracy and adding inventory features." },
+      { item: "Numen — an autonomous Enterprise Intelligence Platform for SAP, multi-agent AI across integration, finance, procurement, and governance." },
+      { item: "WhiteWire — an AI-native canvas for product teams, live at whitewire.vercel.app." },
     ],
     learning: [
-      { item: "Advanced .NET — going deeper into ASP.NET Core, EF Core, and CQRS patterns." },
+      { item: "Advanced .NET — going deeper into ASP.NET Core and enterprise backend patterns." },
       { item: "Three.js and 3D web — building interactive 3D scenes for the web." },
       { item: "Game development — exploring Unity with C# for indie game projects." },
     ],
@@ -202,7 +337,7 @@ await (payload as any).updateGlobal({
       { item: "Designing Data-Intensive Applications — Martin Kleppmann" },
     ],
     location: "Vadodara, Gujarat, India",
-    lastUpdated: "2026-03-27",
+    lastUpdated: new Date().toISOString().slice(0, 10),
     availableForWork: true,
   },
 });
@@ -220,32 +355,27 @@ await (payload as any).updateGlobal({
       { name: "LG 27UK850-W", note: "27\" 4K. Good colour accuracy, USB-C passthrough." },
       { name: "Keychron Q1", note: "Gateron G Pro Red switches. Quiet enough for calls." },
       { name: "Logitech MX Master 3S", note: "The scroll wheel is genuinely a competitive advantage." },
-      { name: "Sony WH-1000XM5", note: "ANC for deep work. The hinge creak is real, though." },
     ],
     software: [
-      { name: "VS Code", note: "With Vim mode. I refuse to explain this." },
-      { name: "Warp", note: "For the terminal. The AI autocomplete is actually useful." },
-      { name: "TablePlus", note: "Database GUI. Worth every penny." },
-      { name: "Proxyman", note: "HTTP proxy. Invaluable for debugging mobile API calls." },
-      { name: "Raycast", note: "Spotlight replacement. The snippets alone justify it." },
+      { name: "SAP Business Application Studio", note: "Cloud IDE for ABAP Cloud and RAP development." },
+      { name: "VS Code", note: "For everything outside the SAP stack — Python, TypeScript, Next.js." },
+      { name: "Postman", note: "Testing OData and REST APIs before they touch a real integration." },
+      { name: "TablePlus", note: "Database GUI for MySQL, PostgreSQL, and SAP HANA. Worth every penny." },
     ],
     devEnv: [
-      { name: "Figma", note: "Variables and dev mode finally made it worth staying." },
-      { name: "Framer", note: "For prototypes that need to feel real." },
-      { name: "Rive", note: "For production-ready interactive animations." },
-      { name: "Typeface 3", note: "Font manager. Keeps the chaos organised." },
+      { name: "SAP BTP Cockpit", note: "Where the CDS Views, RAP services, and Fiori apps actually run." },
+      { name: "Cloud Foundry CLI", note: "Deploying and managing SAP BTP applications." },
+      { name: "Figma", note: "For the UI passes before anything gets built." },
     ],
     fonts: [
       { name: "Playfair Display", note: "My current serif default for editorial work." },
       { name: "DM Sans", note: "Cleanest variable sans for interfaces." },
       { name: "JetBrains Mono", note: "Best monospaced for long coding sessions." },
-      { name: "Söhne", note: "When I need something with more personality." },
     ],
     productivity: [
       { name: "Obsidian", note: "Second brain. Local-first, Markdown, no lock-in." },
+      { name: "GitHub", note: "39+ repos and counting — where the actual work lives." },
       { name: "Linear", note: "Issue tracking that doesn't feel like punishment." },
-      { name: "Cleanshot X", note: "Screenshots and screen recording. Best in class." },
-      { name: "Bear", note: "Quick notes. Syncs fast, stays out of the way." },
     ],
   },
 });
