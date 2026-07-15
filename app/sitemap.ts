@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { getPayload } from "payload";
 import configPromise from "@payload-config";
+import { PROJECT_SLUGS } from "@/lib/projects";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "https://abhijit-singh.in";
 
@@ -17,22 +18,7 @@ const staticRoutes = [
   "/contact",
 ];
 
-const hardcodedProjectSlugs = [
-  "recall-sap",
-  "mindinspo",
-  "numen",
-  "whitewire",
-  "redhope",
-  "sap-fiori-sales",
-  "arora-ai",
-  "bharat-biz-agent",
-  "shieldroute",
-  "living-blossom",
-  "nexus-os",
-  "legacy-lens",
-  "code-legacy-frontend",
-  "e-flower",
-];
+const hardcodedProjectSlugs = PROJECT_SLUGS;
 
 const hardcodedWritingSlugs = [
   "building-ai-agents-from-scratch",

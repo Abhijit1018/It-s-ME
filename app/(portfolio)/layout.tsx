@@ -9,6 +9,7 @@ import { CommandPalette } from "@/components/ui/CommandPalette";
 import { SmoothScrollProvider } from "@/components/layout/SmoothScrollProvider";
 import { EasterEggs } from "@/components/ui/EasterEggs";
 import { TerminalModal } from "@/components/ui/TerminalModal";
+import { GoogleAnalytics } from "@/components/layout/GoogleAnalytics";
 
 const playfair = Playfair_Display({
   variable: "--font-playfair",
@@ -91,6 +92,7 @@ export default function RootLayout({
       className={`${playfair.variable} ${dmSans.variable} ${jetbrains.variable} h-full`}
     >
       <body>
+        <GoogleAnalytics />
         <Script
           id="person-jsonld"
           type="application/ld+json"

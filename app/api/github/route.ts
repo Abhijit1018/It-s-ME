@@ -18,7 +18,7 @@ type Repo = {
 
 export async function GET(req: NextRequest) {
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
-  const { allowed } = rateLimit(ip, 30, 60_000); // 30 req/min per IP
+  const { allowed } = await rateLimit(ip, 30, 60_000); // 30 req/min per IP
   if (!allowed) {
     return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   }

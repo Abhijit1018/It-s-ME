@@ -63,6 +63,8 @@ export function ContactForm() {
   if (status === "success") {
     return (
       <div
+        role="status"
+        aria-live="polite"
         className="rounded-xl p-10 text-center"
         style={{ border: "1px solid var(--border-subtle)", background: "var(--bg-surface)" }}
       >
@@ -183,7 +185,7 @@ export function ContactForm() {
       </div>
 
       {status === "error" && (
-        <p className="text-sm" style={{ color: "var(--accent-rose)" }}>
+        <p className="text-sm" role="alert" aria-live="assertive" style={{ color: "var(--accent-rose)" }}>
           {error}
         </p>
       )}

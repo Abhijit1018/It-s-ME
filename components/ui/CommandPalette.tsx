@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 
 const commands = [
   { label: "Home", href: "/", group: "Navigate" },
@@ -22,6 +23,9 @@ export function CommandPalette() {
   const [activeIdx, setActiveIdx] = useState(0);
   const router = useRouter();
   const listRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  useFocusTrap(panelRef, open);
 
   const filtered = query
     ? commands.filter((c) => c.label.toLowerCase().includes(query.toLowerCase()))
@@ -102,6 +106,7 @@ export function CommandPalette() {
 
           {/* Panel */}
           <motion.div
+            ref={panelRef}
             initial={{ opacity: 0, scale: 0.97, y: -8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.97, y: -8 }}

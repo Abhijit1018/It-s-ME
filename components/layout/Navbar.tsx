@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "./ThemeProvider";
 import { AvailabilityDot } from "@/components/ui/AvailabilityDot";
+import { useFocusTrap } from "@/hooks/useFocusTrap";
 
 const navLinks = [
   { href: "/work", label: "Work" },
@@ -31,6 +32,10 @@ export function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
   const { theme, cycleTheme } = useTheme();
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
+  const closeMenu = useCallback(() => setMenuOpen(false), []);
+
+  useFocusTrap(mobileMenuRef, menuOpen, closeMenu);
 
   useEffect(() => {
     function onScroll() {
@@ -183,6 +188,7 @@ export function Navbar() {
       <AnimatePresence>
         {menuOpen && (
           <motion.div
+            ref={mobileMenuRef}
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
@@ -192,6 +198,7 @@ export function Navbar() {
             aria-modal="true"
             role="dialog"
             aria-label="Navigation menu"
+            tabIndex={-1}
           >
             <nav className="space-y-6" aria-label="Mobile navigation">
               {allLinks.map(({ href, label }, i) => (

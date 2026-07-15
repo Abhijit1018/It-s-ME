@@ -5,12 +5,11 @@ const CACHE_TTL = 3600; // 1 hour in seconds
 let redis: Redis | null = null;
 
 function getRedis(): Redis | null {
-  if (!process.env.REDIS_URL || !process.env.REDIS_TOKEN) return null;
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!url || !token) return null;
   if (!redis) {
-    redis = new Redis({
-      url: process.env.REDIS_URL,
-      token: process.env.REDIS_TOKEN,
-    });
+    redis = new Redis({ url, token });
   }
   return redis;
 }

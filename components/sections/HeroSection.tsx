@@ -1,9 +1,14 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import dynamic from "next/dynamic";
 import { VideoBackground } from "@/components/ui/VideoBackground";
-import { HeroModel } from "@/components/3d/HeroModel";
 import { ScrollCue } from "@/components/ui/ScrollCue";
+
+const HeroModel = dynamic(
+  () => import("@/components/3d/HeroModel").then((m) => m.HeroModel),
+  { ssr: false, loading: () => <div className="w-full h-full" /> }
+);
 
 const HERO = {
   name: "Abhijit Singh",

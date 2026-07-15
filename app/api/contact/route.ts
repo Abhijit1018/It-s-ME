@@ -11,7 +11,7 @@ const ContactSchema = z.object({
 
 export async function POST(req: NextRequest) {
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
-  const { allowed } = rateLimit(ip, 5, 60_000); // 5 submissions per minute per IP
+  const { allowed } = await rateLimit(ip, 5, 60_000); // 5 submissions per minute per IP
   if (!allowed) {
     return NextResponse.json({ error: "Too many requests" }, { status: 429 });
   }
@@ -41,13 +41,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true });
   }
 
+  const toEmail = process.env.RESEND_TO_EMAIL;
+  if (!toEmail) {
+    console.error("RESEND_TO_EMAIL is not set — cannot deliver contact form submissions.");
+    return NextResponse.json({ error: "Contact form is misconfigured" }, { status: 500 });
+  }
+
   try {
     const { Resend } = await import("resend");
     const resend = new Resend(resendKey);
 
     await resend.emails.send({
       from: process.env.RESEND_FROM_EMAIL ?? "noreply@portfolio.dev",
-      to: process.env.RESEND_TO_EMAIL ?? process.env.RESEND_FROM_EMAIL ?? "hello@example.com",
+      to: toEmail,
       replyTo: email,
       subject: `[Portfolio] ${subject} — from ${name}`,
       text: `From: ${name} <${email}>\nSubject: ${subject}\n\n${message}`,
