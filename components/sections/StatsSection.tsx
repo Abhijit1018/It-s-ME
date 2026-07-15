@@ -40,10 +40,8 @@ function AnimatedCounter({
           onEnter: () => {
             if (hasAnimated.current) return;
             hasAnimated.current = true;
-            if (prefersReduced) {
-              if (numRef.current) numRef.current.textContent = `${value}${suffix}`;
-              return;
-            }
+            if (prefersReduced) return;
+            if (numRef.current) numRef.current.textContent = "0" + suffix;
             const counter = { val: 0 };
             gsap.to(counter, {
               val: value,
@@ -80,7 +78,7 @@ function AnimatedCounter({
           letterSpacing: "-0.04em",
         }}
       >
-        <span ref={numRef}>0{suffix}</span>
+        <span ref={numRef}>{value}{suffix}</span>
       </div>
       <p
         className="text-xs tracking-widest uppercase"

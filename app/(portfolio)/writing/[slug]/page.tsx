@@ -380,7 +380,7 @@ export default async function WritingPostPage({
               Share this:
             </p>
             <a
-              href={`https://x.com/intent/tweet?text=${encodeURIComponent(post.title)}&url=${encodeURIComponent(`${process.env.NEXT_PUBLIC_SITE_URL ?? "https://abhijitsingh.dev"}/writing/${slug}`)}`}
+              href={`https://x.com/intent/tweet?text=${encodeURIComponent(post.title)}&url=${encodeURIComponent(`${process.env.NEXT_PUBLIC_SITE_URL ?? "https://abhijit-singh.in"}/writing/${slug}`)}`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm"
@@ -389,7 +389,7 @@ export default async function WritingPostPage({
               X / Twitter →
             </a>
             <a
-              href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(`${process.env.NEXT_PUBLIC_SITE_URL ?? "https://abhijitsingh.dev"}/writing/${slug}`)}`}
+              href={`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(`${process.env.NEXT_PUBLIC_SITE_URL ?? "https://abhijit-singh.in"}/writing/${slug}`)}`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm"

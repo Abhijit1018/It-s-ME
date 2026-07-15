@@ -36,7 +36,7 @@ export const metadata: Metadata = {
   description:
     "Personal portfolio of Abhijit Singh — developer building AI agents, full-stack apps, and enterprise tools.",
   metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"
+    process.env.NEXT_PUBLIC_SITE_URL ?? "https://abhijit-singh.in"
   ),
   openGraph: {
     type: "website",
@@ -60,6 +60,23 @@ export const metadata: Metadata = {
     follow: true,
     googleBot: { index: true, follow: true },
   },
+  verification: {
+    google: "6UG1kiTamRWkkvVxaTi_6IEFNCe549cGzaKL4KAXacA",
+  },
+};
+
+const personJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: "Abhijit Singh",
+  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://abhijit-singh.in",
+  jobTitle: "Developer & Builder",
+  description:
+    "Developer building AI agents, full-stack apps, and enterprise tools.",
+  sameAs: [
+    "https://github.com/Abhijit1018",
+    "https://www.linkedin.com/in/abhijit-singh10",
+  ],
 };
 
 export default function RootLayout({
@@ -74,6 +91,11 @@ export default function RootLayout({
       className={`${playfair.variable} ${dmSans.variable} ${jetbrains.variable} h-full`}
     >
       <body>
+        <Script
+          id="person-jsonld"
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }}
+        />
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[10000] focus:px-4 focus:py-2 focus:rounded-md"
