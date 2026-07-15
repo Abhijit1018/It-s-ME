@@ -19,7 +19,9 @@ const staticRoutes = [
 
 const hardcodedProjectSlugs = [
   "recall-sap",
-  "mindispo",
+  "mindinspo",
+  "numen",
+  "whitewire",
   "redhope",
   "sap-fiori-sales",
   "arora-ai",
